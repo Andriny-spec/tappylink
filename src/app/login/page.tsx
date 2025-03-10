@@ -250,7 +250,7 @@ export default function LoginPage() {
             >
               <p>
                 Não tem uma conta?{' '}
-                <Link href="/cadastro" className="text-[#17d300] hover:underline">
+                <Link href="/" className="text-[#17d300] hover:underline">
                   Cadastre-se
                 </Link>
               </p>

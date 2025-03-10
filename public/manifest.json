@@ -1,8 +1,8 @@
 {
   "name": "TappyID - Seu Cartão Virtual",
-  "short_name": "TappyID",
+  "short_name": "TappyID Card",
   "description": "Compartilhe seu cartão virtual profissional via NFC ou QR Code",
-  "start_url": "/dashboard/meu-perfil",
+  "start_url": "/cartao/{userId}",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#17d300",

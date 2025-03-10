@@ -1,11 +1,18 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue, 
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { 
@@ -21,7 +28,8 @@ import {
   Share,
   MousePointerClick,
   MessageCircle,
-  Music2
+  Music2,
+  LogOut
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { usePWA } from "@/hooks/use-pwa";
@@ -32,7 +40,19 @@ export default function Profile() {
   const { data: session, status } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [profile, setProfile] = useState({
+  // Interfaces para tipagem
+interface Estado {
+  id: number;
+  sigla: string;
+  nome: string;
+}
+
+interface Cidade {
+  id: number;
+  nome: string;
+}
+
+const [profile, setProfile] = useState({
     name: "",
     bio: "",
     photo: "",
@@ -53,6 +73,41 @@ export default function Profile() {
     shares: 0,
     clicks: 0
   });
+  
+  const [estados, setEstados] = useState<Estado[]>([]);
+  const [cidades, setCidades] = useState<Cidade[]>([]);
+  const [selectedEstado, setSelectedEstado] = useState("");
+  
+  useEffect(() => {
+    // Carregar estados do IBGE
+    fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+      .then(response => response.json())
+      .then(data => setEstados(data))
+      .catch(error => console.error('Erro ao carregar estados:', error));
+  }, []);
+  
+  // Carregar cidades quando o estado for selecionado
+  useEffect(() => {
+    if (selectedEstado) {
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedEstado}/municipios?orderBy=nome`)
+        .then(response => response.json())
+        .then(data => setCidades(data))
+        .catch(error => console.error('Erro ao carregar cidades:', error));
+    } else {
+      setCidades([]);
+    }
+  }, [selectedEstado]);
+
+  // Atualizar selectedEstado quando profile.state mudar e não for vazio
+  useEffect(() => {
+    if (profile.state && estados.length > 0) {
+      // Tentar encontrar o estado pelo nome
+      const estadoEncontrado = estados.find(estado => estado.nome === profile.state);
+      if (estadoEncontrado) {
+        setSelectedEstado(estadoEncontrado.id.toString());
+      }
+    }
+  }, [profile.state, estados]);
   
   useEffect(() => {
     async function loadProfile() {
@@ -170,17 +225,18 @@ export default function Profile() {
 
   const handleInstallPWA = async () => {
     try {
-      const installed = await install();
+      // Passamos true para redirecionar para a visão de cartão virtual
+      const installed = await install(true);
       if (installed) {
         toast({
-          title: "App instalado com sucesso!",
-          description: "Agora você pode compartilhar seu cartão via NFC.",
+          title: "Cartão virtual aberto!",
+          description: "Seu cartão virtual foi aberto. Adicione-o à tela inicial para fácil acesso.",
         });
       }
     } catch (error) {
       toast({
-        title: "Erro ao instalar",
-        description: "Não foi possível instalar o app. Tente novamente.",
+        title: "Erro ao abrir cartão",
+        description: "Não foi possível abrir seu cartão virtual. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -296,18 +352,52 @@ export default function Profile() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <Input
-                        value={profile.city}
-                        onChange={(e) => setProfile(prev => ({ ...prev, city: e.target.value }))}
-                        placeholder="Cidade"
-                        disabled={!isEditing}
-                      />
-                      <Input
-                        value={profile.state}
-                        onChange={(e) => setProfile(prev => ({ ...prev, state: e.target.value }))}
-                        placeholder="Estado"
-                        disabled={!isEditing}
-                      />
+                      <div>
+                        <Select
+                          disabled={!isEditing}
+                          value={selectedEstado}
+                          onValueChange={(value) => {
+                            setSelectedEstado(value);
+                            // Encontra o nome do estado selecionado
+                            const estadoObj = estados.find(estado => estado.id.toString() === value);
+                            if (estadoObj) {
+                              setProfile(prev => ({ ...prev, state: estadoObj.nome }));
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Estado" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {estados.map(estado => (
+                              <SelectItem key={estado.id} value={estado.id.toString()}>
+                                {estado.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Select
+                          disabled={!isEditing || !selectedEstado}
+                          value={profile.city}
+                          onValueChange={(value) => {
+                            setProfile(prev => ({ ...prev, city: value }));
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Cidade" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cidades.map(cidade => (
+                              <SelectItem key={cidade.id} value={cidade.nome}>
+                                {cidade.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -421,8 +511,8 @@ export default function Profile() {
                         className="w-full bg-black hover:bg-gray-800 text-white"
                         onClick={handleInstallPWA}
                       >
-                        <Download className="w-4 h-4 mr-2" />
-                        Baixar App
+                        <QrCode className="w-4 h-4 mr-2" />
+                        Abrir Cartão Virtual
                       </Button>
                     </div>
 
@@ -446,11 +536,16 @@ export default function Profile() {
                         variant="outline"
                         className="flex-1"
                         onClick={() => {
-                          // TODO: Implementar geração de QR Code
-                          toast({
-                            title: "QR Code gerado!",
-                            description: "Agora é só compartilhar com seus clientes",
-                          });
+                          // Redirecionar para a página do cartão virtual
+                          if (session?.user?.id) {
+                            window.open(`/cartao/${session.user.id}`, '_blank');
+                          } else {
+                            toast({
+                              title: "Erro ao gerar QR Code",
+                              description: "Não foi possível identificar seu usuário",
+                              variant: "destructive",
+                            });
+                          }
                         }}
                       >
                         <QrCode className="w-4 h-4 mr-2" />
@@ -478,6 +573,16 @@ export default function Profile() {
                         <div className="text-sm text-gray-600">Cliques</div>
                       </Card>
                     </div>
+                    
+                    {/* Botão de Logout */}
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-4 border-red-300 text-red-600 hover:bg-red-50"
+                      onClick={() => signOut({ callbackUrl: "/login" })}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair
+                    </Button>
                   </>
                 )}
               </div>
