@@ -9,10 +9,10 @@ export function Footer() {
     {
       title: "Empresa",
       links: [
-        { label: "Sobre nós", href: "#" },
-        { label: "Nossa História", href: "#" },
-        { label: "Carreiras", href: "#" },
-        { label: "Blog", href: "#" },
+        { label: "Sobre nós", href: "/sobre-nos" },
+        { label: "Nossa História", href: "/sobre-nos" },
+        { label: "Carreiras", href: "/sobre-nos" },
+        { label: "Blog", href: "#/sobre-nos" },
         { label: "Sala de Imprensa", href: "#" },
         { label: "Parceiros", href: "#" },
       ],
@@ -31,23 +31,23 @@ export function Footer() {
     {
       title: "Suporte",
       links: [
-        { label: "Central de Ajuda", href: "#" },
-        { label: "Documentação", href: "#" },
-        { label: "Status do Sistema", href: "#" },
-        { label: "Contato", href: "#" },
-        { label: "Comunidade", href: "#" },
-        { label: "FAQ", href: "#faq" },
+        { label: "Central de Ajuda", href: "/central-de-ajuda" },
+        { label: "Documentação", href: "/central-de-ajuda" },
+        { label: "Status do Sistema", href: "/central-de-ajuda" },
+        { label: "Contato", href: "/central-de-ajuda" },
+        { label: "Comunidade", href: "/central-de-ajuda" },
+        { label: "FAQ", href: "/central-de-ajuda" },
       ],
     },
     {
       title: "Legal",
       links: [
-        { label: "Privacidade", href: "#" },
-        { label: "Termos de Uso", href: "#" },
-        { label: "Cookies", href: "#" },
-        { label: "LGPD", href: "#" },
-        { label: "Segurança", href: "#" },
-        { label: "Compliance", href: "#" },
+        { label: "Privacidade", href: "/politicas-de-privacidade" },
+        { label: "Termos de Uso", href: "/termos-e-condicoes" },
+        { label: "Cookies", href: "/politicas-de-cookies" },
+        { label: "LGPD", href: "/politicas-de-privacidade" },
+        { label: "Segurança", href: "/politicas-de-privacidade" },
+        { label: "Compliance", href: "/politicas-de-privacidade" },
       ],
     },
   ]
@@ -238,7 +238,7 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-400">
               <span> 2024 Tappy ID. Todos os direitos reservados.</span>
-              <a href="/termos-de-uso" className="hover:text-white">Termos de Uso</a>
+              <a href="/termos-e-condicoes" className="hover:text-white">Termos de Uso</a>
               <a href="/politicas-de-privacidade" className="hover:text-white">Política de Privacidade</a>
               <a href="/politicas-de-cookies" className="hover:text-white">Cookies</a>
             </div>

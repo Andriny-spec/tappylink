@@ -15,13 +15,32 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Tappy ID",
-  description: "Transforme seu networking com cartões digitais NFC e QR Code",
+  title: "Tappy ID | Cartões Digitais NFC e QR Code",
+  description: "Revolucione seu networking com cartões digitais NFC e QR Code da Tappy ID. Compartilhe seu perfil, redes sociais e contatos com apenas um toque.",
+  keywords: "cartões digitais, NFC, QR Code, networking, Tappy ID, cartão de visita digital, tecnologia NFC",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Tappy ID",
+  },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://www.tappyid.com.br",
+    title: "Tappy ID | Cartões Digitais NFC e QR Code",
+    description: "Revolucione seu networking com cartões digitais NFC e QR Code da Tappy ID. Compartilhe seu perfil, redes sociais e contatos com apenas um toque.",
+    siteName: "Tappy ID",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tappy ID | Cartões Digitais NFC e QR Code",
+    description: "Revolucione seu networking com cartões digitais NFC e QR Code da Tappy ID.",
+    creator: "@tappyid",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
@@ -40,9 +59,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/TAPPY - SOMENTE A LOGO - VERDE.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="theme-color" content="#17d300" />
+        <meta property="og:image" content="/images/tappy-og-image.jpg" />
+        <meta name="twitter:image" content="/images/tappy-og-image.jpg" />
       </head>
       <body className={`${inter.variable} ${poppins.variable} font-sans`}>
         <div className="fixed inset-0 -z-10 gradient-bg" />
