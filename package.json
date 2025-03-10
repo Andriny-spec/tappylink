@@ -5,10 +5,14 @@
   "description": "Tappy ID - Cartão de visita digital com NFC e QR Code",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "prisma:seed": "npx ts-node prisma/seed.ts"
+    "prisma:seed": "npx ts-node prisma/seed.ts",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.8.0",
