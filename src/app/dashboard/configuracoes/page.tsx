@@ -20,20 +20,20 @@ export default function Configuracoes() {
       <h1 className="text-3xl font-bold mb-8">Configurações</h1>
 
       <Tabs defaultValue="empresa" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="empresa">
+        <TabsList className="w-full overflow-x-auto flex flex-nowrap">
+          <TabsTrigger value="empresa" className="whitespace-nowrap">
             <Building className="w-4 h-4 mr-2" />
             Empresa
           </TabsTrigger>
-          <TabsTrigger value="pagamentos">
+          <TabsTrigger value="pagamentos" className="whitespace-nowrap">
             <CreditCard className="w-4 h-4 mr-2" />
             Pagamentos
           </TabsTrigger>
-          <TabsTrigger value="notificacoes">
+          <TabsTrigger value="notificacoes" className="whitespace-nowrap">
             <Bell className="w-4 h-4 mr-2" />
             Notificações
           </TabsTrigger>
-          <TabsTrigger value="seguranca">
+          <TabsTrigger value="seguranca" className="whitespace-nowrap">
             <Shield className="w-4 h-4 mr-2" />
             Segurança
           </TabsTrigger>
@@ -44,7 +44,7 @@ export default function Configuracoes() {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-4">Informações da Empresa</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       Nome da Empresa
@@ -74,7 +74,7 @@ export default function Configuracoes() {
 
               <div>
                 <h3 className="text-lg font-semibold mb-4">Endereço</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <label className="block text-sm font-medium mb-2">
                       Endereço
@@ -96,8 +96,8 @@ export default function Configuracoes() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button className="bg-[#17d300] hover:bg-[#15bb00]">
+              <div className="flex justify-center sm:justify-end">
+                <Button className="bg-[#17d300] hover:bg-[#15bb00] w-full sm:w-auto">
                   <Save className="w-4 h-4 mr-2" />
                   Salvar Alterações
                 </Button>
@@ -112,7 +112,7 @@ export default function Configuracoes() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Métodos de Pagamento</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                     <div className="flex items-center gap-4">
                       <CreditCard className="w-6 h-6" />
                       <div>
@@ -123,7 +123,7 @@ export default function Configuracoes() {
                     <Button variant="outline">Configurar</Button>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                     <div className="flex items-center gap-4">
                       <Smartphone className="w-6 h-6" />
                       <div>
@@ -139,7 +139,7 @@ export default function Configuracoes() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Planos e Preços</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                     <div>
                       <p className="font-medium">Plano Premium</p>
                       <p className="text-sm text-muted-foreground">R$ 997,00/ano</p>
@@ -158,7 +158,7 @@ export default function Configuracoes() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Notificações por Email</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <p className="font-medium">Nova Venda</p>
                       <p className="text-sm text-muted-foreground">Receba notificações quando houver uma nova venda</p>
@@ -166,7 +166,7 @@ export default function Configuracoes() {
                     <Button variant="outline">Configurar</Button>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <p className="font-medium">Novo Assinante</p>
                       <p className="text-sm text-muted-foreground">Receba notificações quando um novo assinante se cadastrar</p>
@@ -179,7 +179,7 @@ export default function Configuracoes() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Notificações Push</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <p className="font-medium">Atualizações do Sistema</p>
                       <p className="text-sm text-muted-foreground">Receba notificações sobre atualizações do sistema</p>
@@ -198,7 +198,7 @@ export default function Configuracoes() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Autenticação</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                     <div>
                       <p className="font-medium">Autenticação em Duas Etapas</p>
                       <p className="text-sm text-muted-foreground">Adicione uma camada extra de segurança</p>
@@ -232,8 +232,8 @@ export default function Configuracoes() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button className="bg-[#17d300] hover:bg-[#15bb00]">
+              <div className="flex justify-center sm:justify-end">
+                <Button className="bg-[#17d300] hover:bg-[#15bb00] w-full sm:w-auto">
                   <Save className="w-4 h-4 mr-2" />
                   Salvar Alterações
                 </Button>

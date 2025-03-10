@@ -180,10 +180,10 @@ export default function Assinantes() {
   
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">Assinantes</h1>
         <Button 
-          className="bg-[#17d300] hover:bg-[#15bb00]"
+          className="bg-[#17d300] hover:bg-[#15bb00] self-start sm:self-auto"
           onClick={() => setShowNovoAssinanteModal(true)}
         >
           <UserPlus className="w-4 h-4 mr-2" />
@@ -193,7 +193,7 @@ export default function Assinantes() {
 
       {/* Filtros e Busca */}
       <Card className="p-4 mb-8">
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
@@ -203,7 +203,7 @@ export default function Assinantes() {
               onChange={(e) => setBusca(e.target.value)}
             />
           </div>
-          <Button variant="outline">Filtros</Button>
+          <Button variant="outline" className="self-start sm:self-auto">Filtros</Button>
         </div>
       </Card>
 
@@ -236,36 +236,36 @@ export default function Assinantes() {
         <div className="grid gap-4">
           {assinantesFiltrados.map((assinante) => (
             <Card key={assinante.id} className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[#17d300] flex items-center justify-center text-white text-xl">
+                  <div className="w-12 h-12 shrink-0 rounded-full bg-[#17d300] flex items-center justify-center text-white text-xl">
                     {(assinante.name || assinante.email)[0].toUpperCase()}
                   </div>
-                  <div>
-                    <h3 className="font-semibold">{assinante.name || 'Sem nome'}</h3>
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-1">
-                      <div className="flex items-center gap-1">
-                        <Mail className="w-4 h-4" />
-                        {assinante.email}
+                  <div className="min-w-0 overflow-hidden">
+                    <h3 className="font-semibold truncate">{assinante.name || 'Sem nome'}</h3>
+                    <div className="flex flex-wrap gap-2 sm:gap-4 text-sm text-muted-foreground mt-1">
+                      <div className="flex items-center gap-1 max-w-full overflow-hidden">
+                        <Mail className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{assinante.email}</span>
                       </div>
                       {assinante.phone && (
                         <div className="flex items-center gap-1">
-                          <Phone className="w-4 h-4" />
-                          {assinante.phone}
+                          <Phone className="w-4 h-4 shrink-0" />
+                          <span className="truncate">{assinante.phone}</span>
                         </div>
                       )}
                       {assinante.city && assinante.state && (
                         <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {assinante.city}, {assinante.state}
+                          <MapPin className="w-4 h-4 shrink-0" />
+                          <span className="truncate">{assinante.city}, {assinante.state}</span>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
+                <div className="flex items-center justify-between lg:justify-end gap-4 mt-4 lg:mt-0">
+                  <div className="text-left lg:text-right">
                     {assinante.assinatura ? (
                       <>
                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
@@ -314,7 +314,7 @@ export default function Assinantes() {
                       </>
                     )}
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 shrink-0">
                     <Button variant="outline" size="sm" className="px-2" title="Enviar e-mail">
                       <Mail className="w-4 h-4" />
                     </Button>

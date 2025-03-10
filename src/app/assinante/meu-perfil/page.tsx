@@ -14,7 +14,7 @@ import {
   SelectValue, 
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Facebook, 
   Instagram, 
@@ -29,10 +29,17 @@ import {
   MousePointerClick,
   MessageCircle,
   Music2,
-  LogOut
+  LogOut,
+  Shield,
+  Clock,
+  Calendar,
+  CheckCircle2,
+  RefreshCw
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { usePWA } from "@/hooks/use-pwa";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 export default function Profile() {
   const { toast } = useToast();
@@ -72,6 +79,18 @@ const [profile, setProfile] = useState({
     views: 0,
     shares: 0,
     clicks: 0
+  });
+
+  const [subscription, setSubscription] = useState({
+    planName: "",
+    status: "",
+    startDate: null as Date | null,
+    endDate: null as Date | null,
+    daysRemaining: 0,
+    hoursRemaining: 0,
+    minutesRemaining: 0,
+    percentRemaining: 0,
+    features: [] as string[]
   });
   
   const [estados, setEstados] = useState<Estado[]>([]);
@@ -139,6 +158,10 @@ const [profile, setProfile] = useState({
               shares: data.shares || 0,
               clicks: data.clicks || 0
             });
+
+            // Carregar dados da assinatura (mock - para exemplo)
+            // Em produção, você faria uma chamada real para a API
+            loadSubscriptionData(session.user.id);
           } else {
             toast({
               title: "Erro ao carregar perfil",
@@ -161,6 +184,85 @@ const [profile, setProfile] = useState({
     
     loadProfile();
   }, [session, status, toast]);
+
+  // Função para carregar dados da assinatura
+  const loadSubscriptionData = async (userId: string) => {
+    try {
+      // Fazendo a chamada real para a API
+      const response = await fetch(`/api/assinante/subscription?userId=${userId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Convertendo as strings de data para objetos Date
+        const startDate = data.startDate ? new Date(data.startDate) : new Date();
+        const endDate = data.endDate ? new Date(data.endDate) : new Date();
+        
+        // Cálculo de tempo restante
+        const today = new Date();
+        const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+        
+        // Cálculo mais preciso com horas e minutos
+        const timeRemaining = Math.max(0, endDate.getTime() - today.getTime());
+        const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+        const hoursRemaining = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+        const percentRemaining = Math.round((daysRemaining / totalDays) * 100);
+        
+        setSubscription({
+          planName: data.planName,
+          status: data.status,
+          startDate,
+          endDate,
+          daysRemaining,
+          hoursRemaining,
+          minutesRemaining,
+          percentRemaining,
+          features: data.features || []
+        });
+      } else {
+        // Caso não consiga recuperar, usar dados padrão
+        setSubscription({
+          planName: "Sem plano ativo",
+          status: "PENDENTE",
+          startDate: null,
+          endDate: null,
+          daysRemaining: 0,
+          hoursRemaining: 0,
+          minutesRemaining: 0,
+          percentRemaining: 0,
+          features: ["Contrate um plano para acessar todos os recursos"]
+        });
+        
+        console.error("Erro ao buscar assinatura:", await response.text());
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados da assinatura:", error);
+      
+      // Em caso de erro, mostrar mensagem genérica
+      setSubscription({
+        planName: "Erro ao carregar plano",
+        status: "PENDENTE",
+        startDate: null,
+        endDate: null,
+        daysRemaining: 0,
+        hoursRemaining: 0,
+        minutesRemaining: 0,
+        percentRemaining: 0,
+        features: ["Tente novamente mais tarde"]
+      });
+    }
+  };
+
+  // Função para formatar a data
+  const formatDate = (date: Date | null) => {
+    if (!date) return "";
+    return new Intl.DateTimeFormat('pt-BR', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    }).format(date);
+  };
 
   const handleSave = async () => {
     if (!session?.user?.id) return;
@@ -250,12 +352,15 @@ const [profile, setProfile] = useState({
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto space-y-8"
         >
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          {/* Header - mesmo estilo da página de planos */}
+          <div className="text-center mb-8 max-w-lg mx-auto">
+            <Badge className="bg-[#17d300]/10 text-[#106e00] hover:bg-[#17d300]/20 border-0 mb-3">
+              Área do Assinante
+            </Badge>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               Meu Perfil Profissional
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm text-gray-600 max-w-md mx-auto">
               Personalize seu cartão virtual e compartilhe com seus clientes
             </p>
           </div>
@@ -475,7 +580,7 @@ const [profile, setProfile] = useState({
               {/* Action Buttons */}
               <div className="flex flex-col gap-4">
                 {isEditing ? (
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
                     <Button
                       variant="outline"
                       className="flex-1"
@@ -501,27 +606,59 @@ const [profile, setProfile] = useState({
 
                 {!isEditing && (
                   <>
-                    <div className="relative">
-                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-[#17d300] text-white text-xs px-2 py-1 rounded-full">
+                    {/* Métricas - Cards com visualizações, compartilhamentos e cliques */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+                      <Card className="p-2 sm:p-4 text-center">
+                        <Eye className="w-4 h-4 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-blue-500" />
+                        <div className="text-xl sm:text-2xl font-bold text-gray-900">{metrics.views}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Visualizações</div>
+                      </Card>
+                      
+                      <Card className="p-2 sm:p-4 text-center">
+                        <Share className="w-4 h-4 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-green-500" />
+                        <div className="text-xl sm:text-2xl font-bold text-gray-900">{metrics.shares}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Compartilhamentos</div>
+                      </Card>
+                      
+                      <Card className="p-2 sm:p-4 text-center">
+                        <MousePointerClick className="w-4 h-4 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-purple-500" />
+                        <div className="text-xl sm:text-2xl font-bold text-gray-900">{metrics.clicks}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Cliques</div>
+                      </Card>
+                    </div>
+
+                    {/* Botão de Cartão Virtual e QR Code */}
+                    <div className="grid grid-cols-1 gap-4 mb-4">
+                      <Button
+                        className="w-full bg-black hover:bg-gray-800 text-white relative"
+                        onClick={() => {
+                          // Redirecionar para a página do cartão virtual
+                          if (session?.user?.id) {
+                            window.open(`/cartao/${session.user.id}`, '_blank');
+                          } else {
+                            toast({
+                              title: "Erro ao abrir cartão",
+                              description: "Não foi possível identificar seu usuário",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        <span className="absolute -top-2 -right-2 bg-[#17d300] text-white text-xs px-2 py-0.5 rounded-full">
                           Novo!
                         </span>
-                      </div>
-                      <Button
-                        className="w-full bg-black hover:bg-gray-800 text-white"
-                        onClick={handleInstallPWA}
-                      >
                         <QrCode className="w-4 h-4 mr-2" />
                         Abrir Cartão Virtual
                       </Button>
                     </div>
 
-                    <div className="flex gap-4">
+                    {/* Botões de Compartilhamento */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                       <Button
                         variant="outline"
-                        className="flex-1"
+                        className="w-full flex items-center justify-center"
                         onClick={() => {
-                          // TODO: Implementar compartilhamento NFC
+                          // Implementar compartilhamento NFC
                           toast({
                             title: "Aproxime do outro dispositivo",
                             description: "Mantenha os dispositivos próximos para compartilhar via NFC",
@@ -529,12 +666,12 @@ const [profile, setProfile] = useState({
                         }}
                       >
                         <Share2 className="w-4 h-4 mr-2" />
-                        Compartilhar NFC
+                        Gerar NFC
                       </Button>
 
                       <Button
                         variant="outline"
-                        className="flex-1"
+                        className="w-full flex items-center justify-center"
                         onClick={() => {
                           // Redirecionar para a página do cartão virtual
                           if (session?.user?.id) {
@@ -553,31 +690,133 @@ const [profile, setProfile] = useState({
                       </Button>
                     </div>
 
-                    {/* Metrics Cards */}
-                    <div className="grid grid-cols-3 gap-4 mt-4">
-                      <Card className="p-4 text-center">
-                        <Eye className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                        <div className="text-2xl font-bold text-gray-900">{metrics.views}</div>
-                        <div className="text-sm text-gray-600">Visualizações</div>
-                      </Card>
+                    {/* Card de Informações do Plano e Contador */}
+                    <Card className="mb-4 overflow-hidden border-[#17d300]/20 shadow-md">
+                      <CardHeader className="bg-gradient-to-r from-[#17d300]/10 to-[#17d300]/5 pb-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                              <Shield className="w-5 h-5 text-[#17d300]" />
+                              {subscription.planName}
+                            </CardTitle>
+                            <CardDescription className="text-sm mt-1">
+                              {subscription.status === "ATIVA" ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-600 hover:bg-green-50 border-green-200">
+                                  <CheckCircle2 className="w-3 h-3 mr-1" /> Ativo
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-yellow-50 text-yellow-600 hover:bg-yellow-50 border-yellow-200">
+                                  Pendente
+                                </Badge>
+                              )}
+                            </CardDescription>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs text-gray-500">Próxima renovação</span>
+                            <div className="flex items-center text-sm font-medium">
+                              <Calendar className="w-3 h-3 mr-1 text-gray-400" /> 
+                              {formatDate(subscription.endDate)}
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
                       
-                      <Card className="p-4 text-center">
-                        <Share className="w-6 h-6 mx-auto mb-2 text-green-500" />
-                        <div className="text-2xl font-bold text-gray-900">{metrics.shares}</div>
-                        <div className="text-sm text-gray-600">Compartilhamentos</div>
-                      </Card>
-                      
-                      <Card className="p-4 text-center">
-                        <MousePointerClick className="w-6 h-6 mx-auto mb-2 text-purple-500" />
-                        <div className="text-2xl font-bold text-gray-900">{metrics.clicks}</div>
-                        <div className="text-sm text-gray-600">Cliques</div>
-                      </Card>
+                      <CardContent className="pt-4">
+                        <div className="space-y-4">
+                          {/* Contador de tempo */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-4 h-4 text-[#17d300]" /> Tempo restante
+                              </span>
+                              <span className="font-bold">{subscription.daysRemaining} dias</span>
+                            </div>
+                            <Progress value={subscription.percentRemaining} className="h-2" />
+                            <div className="flex justify-between text-xs text-gray-500">
+                              <span>Hoje</span>
+                              <span>{formatDate(subscription.endDate)}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Recursos do plano */}
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-medium">Recursos incluídos:</h4>
+                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {subscription.features.map((feature, index) => (
+                                <li key={index} className="flex items-center text-sm">
+                                  <CheckCircle2 className="w-3 h-3 mr-2 text-[#17d300]" />
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Botão de Download (PWA) */}
+                    {isInstallable && (
+                      <Button 
+                        variant="secondary" 
+                        className="w-full mb-4 bg-[#17d300] hover:bg-[#15bb00] text-white"
+                        onClick={() => install(false)}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar App
+                      </Button>
+                    )}
+                    
+                    {/* Countdown Timer */}
+                    <div className="mb-4 p-4 bg-[#ebfae8] rounded-xl border border-[#17d300] shadow-sm">
+                      <div className="text-sm font-medium text-[#106e00] mb-3 flex items-center">
+                        <Clock className="w-4 h-4 mr-2 text-[#17d300]" />
+                        Seu plano expira em:
+                      </div>
+                      <div className="flex items-center justify-center gap-3">
+                        {/* Dias */}
+                        <div className="flex flex-col items-center">
+                          <div className="bg-[#17d300] text-white font-bold text-2xl w-16 h-16 rounded-xl flex items-center justify-center shadow-md">
+                            {subscription.daysRemaining}
+                          </div>
+                          <div className="mt-1 text-xs text-[#106e00] font-medium">dias</div>
+                        </div>
+                        
+                        <div className="text-[#17d300] font-bold text-xl">:</div>
+                        
+                        {/* Horas */}
+                        <div className="flex flex-col items-center">
+                          <div className="bg-[#17d300] text-white font-bold text-2xl w-16 h-16 rounded-xl flex items-center justify-center shadow-md">
+                            {subscription.hoursRemaining}
+                          </div>
+                          <div className="mt-1 text-xs text-[#106e00] font-medium">horas</div>
+                        </div>
+                        
+                        <div className="text-[#17d300] font-bold text-xl">:</div>
+                        
+                        {/* Minutos */}
+                        <div className="flex flex-col items-center">
+                          <div className="bg-[#17d300] text-white font-bold text-2xl w-16 h-16 rounded-xl flex items-center justify-center shadow-md">
+                            {subscription.minutesRemaining}
+                          </div>
+                          <div className="mt-1 text-xs text-[#106e00] font-medium">min</div>
+                        </div>
+                      </div>
                     </div>
+                    
+                    {/* Botão de Atualizar Plano */}
+                    <Button 
+                      variant="secondary"
+                      className="w-full mb-4 bg-[#106e00] hover:bg-[#095800] text-white"
+                      onClick={() => window.location.href = "/#planos"}
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Atualizar Plano
+                    </Button>
                     
                     {/* Botão de Logout */}
                     <Button 
                       variant="outline" 
-                      className="w-full mt-4 border-red-300 text-red-600 hover:bg-red-50"
+                      className="w-full border-red-300 text-red-600 hover:bg-red-50"
                       onClick={() => signOut({ callbackUrl: "/login" })}
                     >
                       <LogOut className="w-4 h-4 mr-2" />

@@ -41,6 +41,18 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+// Tipagem para as integrações
+type Integracao = {
+  id: number;
+  nome: string;
+  descricao: string;
+  icon: any; // Componente de ícone do lucide-react
+  categoria: string;
+  status: boolean;
+  premium: boolean;
+  guia: string;
+};
+
 // Animações para os componentes
 const container = {
   hidden: { opacity: 0 },
@@ -57,7 +69,7 @@ const item = {
   show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } }
 };
 
-const integracoes = [
+const integracoes: Integracao[] = [
   {
     id: 1,
     nome: 'Instagram',
@@ -121,10 +133,10 @@ const integracoes = [
 ];
 
 export default function Integracoes() {
-  const [activeIntegracao, setActiveIntegracao] = useState(null);
+  const [activeIntegracao, setActiveIntegracao] = useState<Integracao | null>(null);
   const [conectando, setConectando] = useState(false);
   
-  const handleToggleIntegracao = (id) => {
+  const handleToggleIntegracao = (id: number) => {
     // Simulação de toggle
     setTimeout(() => {
       setConectando(false);
@@ -136,14 +148,14 @@ export default function Integracoes() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Integrações</h1>
           <p className="text-muted-foreground mt-2">
             Conecte suas plataformas favoritas ao seu Tappy ID
           </p>
         </div>
-        <Button className="gap-2 bg-[#17d300] hover:bg-[#17d300]/90">
+        <Button className="gap-2 bg-[#17d300] hover:bg-[#17d300]/90 self-start sm:self-auto">
           <PlusCircle className="h-4 w-4" />
           Nova Integração
         </Button>

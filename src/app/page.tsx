@@ -8,6 +8,8 @@ import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { FeaturesCarousel } from "@/components/ui/features-carousel";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import { LottiePlayer } from "@/components/ui/lottie-player";
 import {
   Accordion,
   AccordionContent,
@@ -19,6 +21,7 @@ import TypewriterText from "@/components/ui/typewriter-text";
 export default function Home() {
   const faqRef = useRef<HTMLDivElement>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [shouldRenderPoints, setShouldRenderPoints] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{
     title: string;
     price: string;
@@ -49,45 +52,64 @@ export default function Home() {
     },
   ];
 
-  const plans = [
-    {
-      title: "Plano Individual",
-      price: "R$ 247,00",
-      installments: "6x de R$ 49,00",
-      features: [
-        "1 Cartão Digital Personalizável",
-        "Link para redes sociais e site",
-        "Tecnologia NFC e QR Code",
-        "Edição ilimitada",
-        "Suporte dedicado",
-      ],
-    },
-    {
-      title: "Plano Profissional",
-      price: "R$ 397,00",
-      installments: "6x de R$ 79,00",
-      features: [
-        "Tudo do plano Individual",
-        "3 Cartões Digitais para equipe",
-        "Estatísticas de acessos",
-        "Personalização avançada",
-        "Prioridade no suporte",
-      ],
-      popular: true,
-    },
-    {
-      title: "Plano Empresarial",
-      price: "Sob consulta",
-      installments: "Valores personalizados",
-      features: [
-        "Tudo do plano Profissional",
-        "Personalização com a identidade da empresa",
-        "Integração com CRM",
-        "API disponível",
-        "Gerenciamento de equipe",
-      ],
-    },
-  ];
+  const [plans, setPlans] = useState<Array<{
+    id: string;
+    title: string;
+    price: string;
+    installments: string;
+    features: string[];
+    popular?: boolean;
+  }>>([]);
+  
+  // Função para formatar o preço
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(price);
+  };
+  
+  // Função para calcular o valor da parcela
+  const calculateInstallment = (price: number, installments: number = 6) => {
+    const installmentValue = price / installments;
+    return `${installments}x de ${new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(installmentValue)}`;
+  };
+  
+  // Buscar planos do banco de dados
+  // Renderiza os pontos apenas no lado do cliente para evitar erro de hidratação
+  useEffect(() => {
+    setShouldRenderPoints(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await fetch('/api/planos');
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Transformar os dados da API para o formato necessário para o componente
+          const formattedPlans = data.map((plan: any, index: number) => ({
+            id: plan.id,
+            title: plan.name,
+            price: plan.price ? formatPrice(Number(plan.price)) : "Sob consulta",
+            installments: plan.price ? calculateInstallment(Number(plan.price)) : "Valores personalizados",
+            features: plan.features || [],
+            popular: index === 1 // Define o segundo plano como popular (pode ajustar esta lógica)
+          }));
+          
+          setPlans(formattedPlans);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar planos:", error);
+      }
+    };
+    
+    fetchPlans();
+  }, []);
 
   const faqs = [
     {
@@ -115,7 +137,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="min-h-[200vh] bg-[#0a192f] pt-20 relative">
+      <main className="min-h-[200vh] bg-[#0a192f] pt-40 relative">
         {/* Background com efeitos visuais animados */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Grade de fundo */}
@@ -182,34 +204,36 @@ export default function Home() {
           />
         </div>
         
-        {/* Pontos flutuantes */}
-        <div className="absolute inset-0 overflow-hidden">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-[#17d300]/50"
-              initial={{ 
-                x: Math.random() * 100 + "%", 
-                y: Math.random() * 100 + "%",
-                opacity: 0.3,
-                scale: 0.3
-              }}
-              animate={{ 
-                opacity: [0.3, 0.7, 0.3],
-                scale: [0.3, 0.6, 0.3]
-              }}
-              transition={{ 
-                repeat: Infinity, 
-                duration: 3 + Math.random() * 4,
-                ease: "easeInOut"
-              }}
-              style={{
-                width: 8 + Math.random() * 16,
-                height: 8 + Math.random() * 16,
-              }}
-            />
-          ))}
-        </div>
+        {/* Pontos flutuantes - renderizados apenas no cliente para evitar erro de hidratação */}
+        {shouldRenderPoints && (
+          <div className="absolute inset-0 overflow-hidden">
+            {Array.from({ length: 50 }).map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full bg-[#17d300]/50"
+                initial={{ 
+                  x: Math.random() * 100 + "%", 
+                  y: Math.random() * 100 + "%",
+                  opacity: 0.3,
+                  scale: 0.3
+                }}
+                animate={{ 
+                  opacity: [0.3, 0.7, 0.3],
+                  scale: [0.3, 0.6, 0.3]
+                }}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 3 + Math.random() * 4,
+                  ease: "easeInOut"
+                }}
+                style={{
+                  width: 8 + Math.random() * 16,
+                  height: 8 + Math.random() * 16,
+                }}
+              />
+            ))}
+          </div>
+        )}
         
         {/* Filtro semi-transparente para o efeito glassmorphism */}
         <div className="absolute inset-0 bg-[#0a192f]/80 backdrop-blur-md" />
@@ -461,6 +485,89 @@ export default function Home() {
                     </motion.div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Call to Action Section */}
+          <section className="py-16 px-4">
+            <div className="container mx-auto">
+              <div className="relative overflow-hidden bg-gradient-to-r from-[#0a192f] to-[#172a46] rounded-[22px] p-8 md:p-12 shadow-xl">
+                {/* Pattern background */}
+                <div className="absolute inset-0 opacity-20">
+                  <div className="absolute inset-0" style={{ backgroundImage: "url('/blue-pattern.svg')", backgroundSize: "40px 40px" }}></div>
+                  <div className="absolute right-0 bottom-0 w-64 h-64 transform translate-x-1/4 translate-y-1/4 bg-[#17d300] rounded-full opacity-20 blur-2xl"></div>
+                  <div className="absolute left-0 top-0 w-96 h-96 transform -translate-x-1/3 -translate-y-1/3 bg-[#17d300] rounded-full opacity-20 blur-3xl"></div>
+                </div>
+
+                <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                  <div className="">
+                    <motion.h2 
+                      className="text-3xl md:text-4xl font-bold text-white mb-3 font-poppins"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      Pronto para transformar sua presença profissional?
+                    </motion.h2>
+                    <motion.h3 
+                      className="text-xl font-semibold text-white/90 mb-4 font-poppins"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                    >
+                      Dê um passo à frente com o Tappy ID
+                    </motion.h3>
+                    <motion.p 
+                      className="text-white/80 mb-8 text-lg font-poppins"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                    >
+                      Junte-se a milhares de profissionais que já estão usando o Tappy ID para compartilhar suas informações de contato de forma moderna, prática e profissional. Nosso cartão digital é a chave para criar conexões mais significativas e duradouras.
+                    </motion.p>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.3, duration: 0.5 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="relative inline-block"
+                    >
+                      <div className="absolute -inset-1 bg-[#17d300]/30 rounded-full blur-md animate-pulse"></div>
+                      <Button
+                        className="bg-[#17d300] text-white hover:bg-[#15bb00] font-poppins font-semibold py-6 px-10 rounded-full relative z-10 shadow-lg"
+                        size="lg"
+                        onClick={() => window.open('/cadastro', '_blank')}
+                      >
+                        COMEÇAR AGORA
+                      </Button>
+                    </motion.div>
+                  </div>
+                  
+                  {/* Animação Lottie */}
+                  <div className="flex justify-center">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.8, delay: 0.3 }}
+                      className="relative w-full max-w-md"
+                    >
+                      <LottiePlayer
+                        src="/lotties/business-animation.json"
+                        className="w-full"
+                        autoplay
+                        loop
+                      />
+                    </motion.div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>

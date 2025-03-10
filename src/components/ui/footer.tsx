@@ -138,8 +138,9 @@ export function Footer() {
               <span className="text-white font-semibold">Tappy ID</span>
             </div>
             <p className="text-gray-400 text-sm mb-6">
-              Transformando a maneira como profissionais compartilham suas
-              informações de contato através da tecnologia NFC e QR Code.
+              Transformando a maneira como profissionais
+              compartilham suas informações de contato 
+              através da tecnologia NFC e QR Code.
             </p>
             <div className="space-y-2 mb-6">
               {contactInfo.map((item, index) => {
@@ -205,7 +206,7 @@ export function Footer() {
             <div className="flex gap-4">
               <a href="#" className="block">
                 <Image
-                  src="/app-store.png"
+                  src="/badge-app-store.webp"
                   alt="Download na App Store"
                   width={120}
                   height={36}
@@ -214,7 +215,7 @@ export function Footer() {
               </a>
               <a href="#" className="block">
                 <Image
-                  src="/google-play.png"
+                  src="/badge-google-play.webp"
                   alt="Download no Google Play"
                   width={120}
                   height={36}
@@ -237,21 +238,12 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-400">
               <span> 2024 Tappy ID. Todos os direitos reservados.</span>
-              <a href="#" className="hover:text-white">Termos de Uso</a>
-              <a href="#" className="hover:text-white">Política de Privacidade</a>
-              <a href="#" className="hover:text-white">Cookies</a>
+              <a href="/termos-de-uso" className="hover:text-white">Termos de Uso</a>
+              <a href="/politicas-de-privacidade" className="hover:text-white">Política de Privacidade</a>
+              <a href="/politicas-de-cookies" className="hover:text-white">Cookies</a>
             </div>
             <div className="flex gap-3">
-              <img
-                src="/ssl-secure.png"
-                alt="SSL Secure"
-                className="h-6 w-auto"
-              />
-              <img
-                src="/pci-compliant.png"
-                alt="PCI Compliant"
-                className="h-6 w-auto"
-              />
+            
             </div>
           </div>
         </div>

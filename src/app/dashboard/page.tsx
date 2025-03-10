@@ -1,12 +1,14 @@
 'use client';
 
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { 
   Users, 
   MousePointerClick, 
   DollarSign, 
   RefreshCcw,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -20,55 +22,80 @@ import {
   Bar
 } from 'recharts';
 
-const data = [
-  { name: 'Jan', acessos: 4000, cliques: 2400, vendas: 2400 },
-  { name: 'Fev', acessos: 3000, cliques: 1398, vendas: 2210 },
-  { name: 'Mar', acessos: 2000, cliques: 9800, vendas: 2290 },
-  { name: 'Abr', acessos: 2780, cliques: 3908, vendas: 2000 },
-  { name: 'Mai', acessos: 1890, cliques: 4800, vendas: 2181 },
-  { name: 'Jun', acessos: 2390, cliques: 3800, vendas: 2500 },
-  { name: 'Jul', acessos: 3490, cliques: 4300, vendas: 2100 },
-];
+// Definindo o tipo para as métricas
+type Metric = {
+  title: string;
+  value: string;
+  change: string;
+  icon: React.ElementType;
+  color: string;
+};
 
-const metrics = [
-  {
-    title: 'Total de Acessos',
-    value: '12.361',
-    change: '+14%',
-    icon: Users,
-    color: 'text-blue-500'
-  },
-  {
-    title: 'Total de Cliques',
-    value: '48.271',
-    change: '+23%',
-    icon: MousePointerClick,
-    color: 'text-purple-500'
-  },
-  {
-    title: 'Total de Vendas',
-    value: 'R$ 23.590',
-    change: '+18%',
-    icon: DollarSign,
-    color: 'text-green-500'
-  },
-  {
-    title: 'Total de Reembolsos',
-    value: 'R$ 1.230',
-    change: '-5%',
-    icon: RefreshCcw,
-    color: 'text-red-500'
-  },
-  {
-    title: 'Lucro Total',
-    value: 'R$ 22.360',
-    change: '+21%',
-    icon: TrendingUp,
-    color: 'text-[#17d300]'
-  },
-];
+// Mapeamento de ícones
+const iconMapping: { [key: string]: React.ElementType } = {
+  Users: Users,
+  MousePointerClick: MousePointerClick,
+  DollarSign: DollarSign,
+  RefreshCcw: RefreshCcw,
+  TrendingUp: TrendingUp
+};
 
 export default function Dashboard() {
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/dashboard/vendas/metricas');
+        
+        if (!response.ok) {
+          throw new Error('Erro ao buscar dados do dashboard');
+        }
+        
+        const data = await response.json();
+        
+        // Processar as métricas e adicionar os ícones corretos
+        const metricasProcessadas = data.metricas.map((metric: any) => ({
+          ...metric,
+          icon: iconMapping[metric.icon],
+        }));
+        
+        setMetrics(metricasProcessadas);
+        setChartData(data.dadosGraficos);
+      } catch (err) {
+        console.error('Erro ao buscar dados:', err);
+        setError('Não foi possível carregar os dados do dashboard.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+        <p>Carregando dados do dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-8">Visão Geral</h1>
@@ -87,7 +114,7 @@ export default function Dashboard() {
                   {metric.change} desde o último mês
                 </p>
               </div>
-              <metric.icon className={`w-5 h-5 ${metric.color}`} />
+              {metric.icon && <metric.icon className={`w-5 h-5 ${metric.color}`} />}
             </div>
           </Card>
         ))}
@@ -99,7 +126,7 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold mb-4">Acessos e Cliques</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -129,7 +156,7 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold mb-4">Vendas Mensais</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />

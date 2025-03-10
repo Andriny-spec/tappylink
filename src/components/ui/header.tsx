@@ -96,6 +96,12 @@ export function Header() {
               >
                 Começar Agora
               </Button>
+              <Button
+              className="bg-white hover:bg-gray-100 text-[#17d300] border border-[#17d300]"
+              onClick={() => window.location.href = "/login"}
+            >
+              Conectar-se
+            </Button>
             </nav>
           </div>
         )}

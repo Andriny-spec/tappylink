@@ -13,8 +13,22 @@ import {
   CheckCheck
 } from "lucide-react";
 
+// Definição do tipo de conversa
+type Conversa = {
+  id: number;
+  usuario: {
+    nome: string;
+    avatar: string;
+    online: boolean;
+  };
+  ultimaMensagem: string;
+  dataUltimaMensagem: string;
+  naoLidas: number;
+  status: string;
+};
+
 // Modelo de dados simulado para conversas
-const conversas = [
+const conversas: Conversa[] = [
   {
     id: 1,
     usuario: {
@@ -78,7 +92,7 @@ const conversas = [
 ];
 
 export default function ChatAoVivo() {
-  const [conversaSelecionada, setConversaSelecionada] = useState(null);
+  const [conversaSelecionada, setConversaSelecionada] = useState<Conversa | null>(null);
   const [mensagem, setMensagem] = useState('');
   const [filtro, setFiltro] = useState('ativo');
   
@@ -95,9 +109,9 @@ export default function ChatAoVivo() {
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-12rem)] gap-4">
+      <div className="flex flex-col md:flex-row h-[calc(100vh-12rem)] gap-4">
         {/* Lista de conversas */}
-        <Card className="w-1/3 overflow-hidden flex flex-col">
+        <Card className="w-full md:w-1/3 overflow-hidden flex flex-col h-[300px] md:h-full">
           <div className="p-4 border-b">
             <div className="flex gap-2">
               <Button 
@@ -161,12 +175,12 @@ export default function ChatAoVivo() {
         </Card>
         
         {/* Área de chat */}
-        <Card className="w-2/3 flex flex-col">
+        <Card className="w-full md:w-2/3 flex flex-col flex-grow">
           {conversaSelecionada ? (
             <>
               <div className="p-4 border-b flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="relative shrink-0">
                     <div className="w-10 h-10 bg-slate-300 rounded-full flex items-center justify-center">
                       <User className="w-6 h-6 text-slate-600" />
                     </div>
@@ -174,14 +188,14 @@ export default function ChatAoVivo() {
                       <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#17d300] border-2 border-background rounded-full"></span>
                     )}
                   </div>
-                  <div>
-                    <p className="font-medium">{conversaSelecionada.usuario.nome}</p>
+                  <div className="min-w-0 overflow-hidden">
+                    <p className="font-medium truncate">{conversaSelecionada.usuario.nome}</p>
                     <p className="text-xs text-[#17d300]">
                       {conversaSelecionada.usuario.online ? 'Online' : 'Offline'}
                     </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="ml-2 shrink-0">
                   <MoreVertical className="h-5 w-5" />
                 </Button>
               </div>
@@ -216,7 +230,7 @@ export default function ChatAoVivo() {
               
               <div className="p-4 border-t">
                 <div className="flex gap-2">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <input 
                       type="text" 
                       value={mensagem}
@@ -225,7 +239,7 @@ export default function ChatAoVivo() {
                       className="w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-[#17d300] focus:border-transparent"
                     />
                   </div>
-                  <Button size="icon" className="rounded-full bg-[#17d300] hover:bg-[#17d300]/90">
+                  <Button size="icon" className="rounded-full bg-[#17d300] hover:bg-[#17d300]/90 shrink-0">
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>

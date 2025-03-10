@@ -111,14 +111,14 @@ export default function Relatorios() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Relatórios</h1>
           <p className="text-muted-foreground mt-2">
             Acompanhe métricas e desempenho do seu Tappy ID
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 justify-start sm:justify-end">
           <Button variant="outline" size="sm" className="gap-2">
             <Calendar className="h-4 w-4" />
             Filtrar
@@ -135,11 +135,11 @@ export default function Relatorios() {
       </div>
 
       <Tabs defaultValue="resumo" className="mb-8" onValueChange={handleTabChange}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="resumo">Resumo</TabsTrigger>
-          <TabsTrigger value="visitas">Visitas</TabsTrigger>
-          <TabsTrigger value="compartilhamentos">Compartilhamentos</TabsTrigger>
-          <TabsTrigger value="conversoes">Conversões</TabsTrigger>
+        <TabsList className="mb-4 w-full overflow-x-auto flex flex-nowrap">
+          <TabsTrigger value="resumo" className="whitespace-nowrap">Resumo</TabsTrigger>
+          <TabsTrigger value="visitas" className="whitespace-nowrap">Visitas</TabsTrigger>
+          <TabsTrigger value="compartilhamentos" className="whitespace-nowrap">Compartilhamentos</TabsTrigger>
+          <TabsTrigger value="conversoes" className="whitespace-nowrap">Conversões</TabsTrigger>
         </TabsList>
         
         {progress < 100 && (

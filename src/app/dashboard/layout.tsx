@@ -16,17 +16,21 @@ import {
   ChevronRight,
   BarChart3,
   Network,
-  MessageCircle
+  MessageCircle,
+  Package
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import { NotificationPanel } from '@/components/dashboard/notification-panel';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Visão Geral', href: '/dashboard' },
   { icon: Users, label: 'Assinantes', href: '/dashboard/assinantes' },
+  { icon: Package, label: 'Planos', href: '/dashboard/planos' },
   { icon: DollarSign, label: 'Vendas', href: '/dashboard/vendas' },
   { icon: Network, label: 'Integrações', href: '/dashboard/integracoes' },
   { icon: MessageCircle, label: 'Chat ao Vivo', href: '/dashboard/chat' },
@@ -61,10 +65,18 @@ export default function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-accent rounded-full relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="p-2 hover:bg-accent rounded-full relative">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-full sm:max-w-md lg:max-w-lg">
+                <SheetTitle className="sr-only">Painel de Notificações</SheetTitle>
+                <NotificationPanel />
+              </SheetContent>
+            </Sheet>
 
             <button 
               className="p-2 hover:bg-accent rounded-full"

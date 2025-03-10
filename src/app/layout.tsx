@@ -4,6 +4,7 @@ import { Inter, Poppins } from 'next/font/google'
 import { Providers } from './providers'
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { ChatWrapper } from "@/components/ui/chat-wrapper";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -46,7 +47,9 @@ export default function RootLayout({
       <body className={`${inter.variable} ${poppins.variable} font-sans`}>
         <div className="fixed inset-0 -z-10 gradient-bg" />
         <Providers>
-          {children}
+          <ChatWrapper>
+            {children}
+          </ChatWrapper>
           <Toaster />
           <SonnerToaster position="top-right" closeButton />
           <Script
