@@ -9,7 +9,7 @@ import { Footer } from "@/components/ui/footer";
 import { FeaturesCarousel } from "@/components/ui/features-carousel";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { LottiePlayer } from "@/components/ui/lottie-player";
+
 import {
   Accordion,
   AccordionContent,
@@ -559,12 +559,15 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                       className="relative w-full max-w-md"
                     >
-                      <LottiePlayer
-                        src="/lotties/business-animation.json"
-                        className="w-full"
-                        autoplay
-                        loop
-                      />
+                      <div className="w-full flex items-center justify-center">
+                        <Image
+                          src="/images/business-illustration.png"
+                          alt="Negócios digitais"
+                          width={400}
+                          height={400}
+                          className="w-full max-w-[400px] h-auto"
+                        />
+                      </div>
                     </motion.div>
                   </div>
                 </div>
