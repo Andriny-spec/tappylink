@@ -60,36 +60,18 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      // Verificar login na API primeiro
-      const verifyResponse = await fetch('/api/auth/verificar-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
-      });
+      console.log('Iniciando login com NextAuth v4');
       
-      const verifyData = await verifyResponse.json();
-      
-      if (!verifyData.success) {
-        toast.error('Credenciais inválidas. Tente novamente.');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Armazenar informações do redirecionamento
-      const redirectUrl = verifyData.redirectUrl;
-      
-      // Login com NextAuth para criar sessão
+      // Fazer login sem redirecionamento automático
       const result = await signIn('credentials', {
         email: values.email,
         password: values.password,
-        redirect: false,
+        redirect: false
       });
       
       if (result?.error) {
-        toast.error('Erro ao criar sessão. Tente novamente.');
+        console.error('Erro na autenticação:', result.error);
+        toast.error('Credenciais inválidas. Tente novamente.');
         setIsLoading(false);
         return;
       }
@@ -97,10 +79,22 @@ export default function LoginPage() {
       // Login bem-sucedido
       toast.success('Login realizado com sucesso! Redirecionando...');
       
-      // Redirecionamento manual para a URL correta
+      // Buscar a sessão atual para verificar o papel do usuário
+      const session = await fetch('/api/auth/session');
+      const sessionData = await session.json();
+      
+      // Determinar redirecionamento baseado no papel (role) do usuário
+      let redirectTo = '/assinante/meu-perfil'; // Padrão para assinantes
+      
+      // Se for admin, redireciona para o dashboard
+      if (sessionData?.user?.role === 'ADMIN') {
+        redirectTo = '/dashboard';
+      }
+      
+      // Redirecionar após mensagem de sucesso
       setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 1000);
+        window.location.href = redirectTo;
+      }, 1500);
       
     } catch (error) {
       console.error('Erro ao fazer login:', error);
