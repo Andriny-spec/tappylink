@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import * as argon2 from "argon2";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../[...nextauth]/route";
+import { auth } from "../../../../lib/auth";
 import { cookies } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
 
@@ -42,7 +41,8 @@ export async function POST(request: NextRequest) {
     const expires = new Date(Date.now() + expiresIn);
 
     // Criar um cookie de sessão
-    cookies().set({
+    const cookieStore = await cookies();
+    cookieStore.set({
       name: "next-auth.session-token",
       value: sessionToken,
       expires,

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { auth } from "../../../lib/auth";
 
 // Esta rota vai redirecionar para o cartão do usuário logado
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (session?.user?.id) {
       // Redireciona para o cartão do usuário
