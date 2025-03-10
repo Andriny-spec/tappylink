@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#clip0_1_2)">
+    <path d="M200 400C310.457 400 400 310.457 400 200C400 89.5431 310.457 0 200 0C89.5431 0 0 89.5431 0 200C0 310.457 89.5431 400 200 400Z" fill="#F0FFF0" fill-opacity="0.2"/>
+    
+    <!-- Círculos decorativos -->
+    <circle cx="200" cy="200" r="150" stroke="#17d300" stroke-width="2" stroke-dasharray="10 5" fill="none"/>
+    <circle cx="200" cy="200" r="120" stroke="#17d300" stroke-opacity="0.3" stroke-width="4" fill="none"/>
+    
+    <!-- Cartão Digital -->
+    <rect x="125" y="120" width="150" height="240" rx="15" fill="white" stroke="#17d300" stroke-width="2"/>
+    <rect x="140" y="160" width="120" height="20" rx="5" fill="#E8F5E9"/>
+    <rect x="140" y="190" width="120" height="10" rx="5" fill="#E8F5E9"/>
+    <rect x="140" y="210" width="120" height="10" rx="5" fill="#E8F5E9"/>
+    <rect x="140" y="230" width="80" height="10" rx="5" fill="#E8F5E9"/>
+    
+    <!-- Código QR -->
+    <rect x="140" y="260" width="60" height="60" rx="5" fill="#17d300" fill-opacity="0.8"/>
+    <rect x="150" y="270" width="40" height="40" rx="3" fill="white"/>
+    <rect x="155" y="275" width="10" height="10" rx="1" fill="#17d300"/>
+    <rect x="175" y="275" width="10" height="10" rx="1" fill="#17d300"/>
+    <rect x="155" y="295" width="10" height="10" rx="1" fill="#17d300"/>
+    <rect x="175" y="295" width="10" height="10" rx="1" fill="#17d300"/>
+    
+    <!-- Avatar -->
+    <circle cx="165" cy="140" r="15" fill="#17d300"/>
+    <path d="M165 132C162.791 132 161 133.791 161 136C161 138.209 162.791 140 165 140C167.209 140 169 138.209 169 136C169 133.791 167.209 132 165 132Z" fill="white"/>
+    <path d="M172 144C172 140.134 168.866 137 165 137C161.134 137 158 140.134 158 144H172Z" fill="white"/>
+    
+    <!-- Linhas de conexão -->
+    <path d="M290 180 L330 170" stroke="#17d300" stroke-width="2" stroke-dasharray="4 2"/>
+    <path d="M290 220 L330 220" stroke="#17d300" stroke-width="2" stroke-dasharray="4 2"/>
+    <path d="M290 260 L330 270" stroke="#17d300" stroke-width="2" stroke-dasharray="4 2"/>
+    
+    <!-- Ícones à direita -->
+    <circle cx="340" cy="170" r="10" fill="#17d300" fill-opacity="0.2" stroke="#17d300" stroke-width="1.5"/>
+    <path d="M336 170 L340 174 L344 166" stroke="#17d300" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <circle cx="340" cy="220" r="10" fill="#17d300" fill-opacity="0.2" stroke="#17d300" stroke-width="1.5"/>
+    <path d="M335 220 L345 220 M340 215 L340 225" stroke="#17d300" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <circle cx="340" cy="270" r="10" fill="#17d300" fill-opacity="0.2" stroke="#17d300" stroke-width="1.5"/>
+    <path d="M335 270 L345 270 M340 265 L340 275" stroke="#17d300" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(45 340 270)"/>
+    
+    <!-- Pequenos círculos decorativos -->
+    <circle cx="80" cy="120" r="5" fill="#17d300" fill-opacity="0.5"/>
+    <circle cx="90" cy="140" r="3" fill="#17d300" fill-opacity="0.3"/>
+    <circle cx="70" cy="150" r="4" fill="#17d300" fill-opacity="0.4"/>
+    <circle cx="95" cy="170" r="6" fill="#17d300" fill-opacity="0.2"/>
+    
+    <circle cx="320" cy="120" r="4" fill="#17d300" fill-opacity="0.4"/>
+    <circle cx="330" cy="100" r="3" fill="#17d300" fill-opacity="0.3"/>
+    <circle cx="310" cy="90" r="5" fill="#17d300" fill-opacity="0.5"/>
+    
+    <circle cx="100" cy="300" r="6" fill="#17d300" fill-opacity="0.2"/>
+    <circle cx="80" cy="320" r="4" fill="#17d300" fill-opacity="0.4"/>
+    <circle cx="60" cy="290" r="5" fill="#17d300" fill-opacity="0.3"/>
+  </g>
+  <defs>
+    <clipPath id="clip0_1_2">
+      <rect width="400" height="400" fill="white"/>
+    </clipPath>
+  </defs>
+</svg>

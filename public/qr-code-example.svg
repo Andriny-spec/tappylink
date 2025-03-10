@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+ <rect x="0" y="0" width="256" height="256" fill="#ffffff"/>
+ <g transform="scale(8)">
+  <g transform="translate(4,4)">
+   <path d="m0,0h7v7h-7z" fill="#000000"/>
+   <path d="m8,0h1v1h-1z" fill="#000000"/>
+   <path d="m10,0h2v1h-2z" fill="#000000"/>
+   <path d="m13,0h1v1h-1z" fill="#000000"/>
+   <path d="m15,0h1v1h-1z" fill="#000000"/>
+   <path d="m17,0h7v7h-7z" fill="#000000"/>
+   <path d="m0,8h1v1h-1z" fill="#000000"/>
+   <path d="m6,8h1v1h-1z" fill="#000000"/>
+   <path d="m8,8h2v1h-2z" fill="#000000"/>
+   <path d="m11,8h2v1h-2z" fill="#000000"/>
+   <path d="m14,8h1v1h-1z" fill="#000000"/>
+   <path d="m17,8h1v1h-1z" fill="#000000"/>
+   <path d="m23,8h1v1h-1z" fill="#000000"/>
+   <path d="m0,10h2v1h-2z" fill="#000000"/>
+   <path d="m3,10h1v1h-1z" fill="#000000"/>
+   <path d="m5,10h2v1h-2z" fill="#000000"/>
+   <path d="m8,10h3v1h-3z" fill="#000000"/>
+   <path d="m12,10h4v1h-4z" fill="#000000"/>
+   <path d="m17,10h2v1h-2z" fill="#000000"/>
+   <path d="m20,10h1v1h-1z" fill="#000000"/>
+   <path d="m22,10h2v1h-2z" fill="#000000"/>
+   <path d="m0,13h1v1h-1z" fill="#000000"/>
+   <path d="m2,13h3v1h-3z" fill="#000000"/>
+   <path d="m6,13h1v1h-1z" fill="#000000"/>
+   <path d="m8,13h2v1h-2z" fill="#000000"/>
+   <path d="m11,13h2v1h-2z" fill="#000000"/>
+   <path d="m14,13h1v1h-1z" fill="#000000"/>
+   <path d="m17,13h1v1h-1z" fill="#000000"/>
+   <path d="m19,13h3v1h-3z" fill="#000000"/>
+   <path d="m23,13h1v1h-1z" fill="#000000"/>
+   <path d="m0,15h1v1h-1z" fill="#000000"/>
+   <path d="m6,15h1v1h-1z" fill="#000000"/>
+   <path d="m8,15h1v1h-1z" fill="#000000"/>
+   <path d="m10,15h2v1h-2z" fill="#000000"/>
+   <path d="m13,15h1v1h-1z" fill="#000000"/>
+   <path d="m15,15h1v1h-1z" fill="#000000"/>
+   <path d="m17,15h1v1h-1z" fill="#000000"/>
+   <path d="m23,15h1v1h-1z" fill="#000000"/>
+   <path d="m0,17h7v7h-7z" fill="#000000"/>
+   <path d="m8,17h1v1h-1z" fill="#000000"/>
+   <path d="m10,17h2v1h-2z" fill="#000000"/>
+   <path d="m13,17h1v1h-1z" fill="#000000"/>
+   <path d="m15,17h1v1h-1z" fill="#000000"/>
+   <path d="m17,17h7v7h-7z" fill="#000000"/>
+  </g>
+ </g>
+</svg>
