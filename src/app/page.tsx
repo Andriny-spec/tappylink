@@ -59,6 +59,7 @@ export default function Home() {
     installments: string;
     features: string[];
     popular?: boolean;
+    checkoutLink?: string;
   }>>([]);
   
   // Função para formatar o preço
@@ -87,24 +88,80 @@ export default function Home() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await fetch('/api/planos');
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Transformar os dados da API para o formato necessário para o componente
-          const formattedPlans = data.map((plan: any, index: number) => ({
-            id: plan.id,
-            title: plan.name,
-            price: plan.price ? formatPrice(Number(plan.price)) : "Sob consulta",
-            installments: plan.price ? calculateInstallment(Number(plan.price)) : "Valores personalizados",
-            features: plan.features || [],
-            popular: index === 1 // Define o segundo plano como popular (pode ajustar esta lógica)
-          }));
-          
-          setPlans(formattedPlans);
+        // Importar configuração dinamicamente para evitar problemas de SSR
+        const { TAPPY_API_URL, PLATFORM_SLUG } = await import('@/config');
+        
+        // Buscar planos da API central do Tappy para a plataforma TappyID
+        const response = await fetch(`${TAPPY_API_URL}/api/planos/plataforma/${PLATFORM_SLUG}`);
+        
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar planos: ${response.status}`);
         }
+        
+        const data = await response.json();
+        
+        if (!data.planos || !Array.isArray(data.planos)) {
+          console.error('Formato de resposta inválido:', data);
+          return;
+        }
+        
+        // Transformar os dados da API para o formato necessário para o componente
+        const formattedPlans = data.planos.map((plan: any, index: number) => ({
+          id: plan.id,
+          title: plan.name,
+          price: plan.price ? formatPrice(Number(plan.price)) : "Sob consulta",
+          installments: plan.price ? calculateInstallment(Number(plan.price)) : "Valores personalizados",
+          features: plan.features || [],
+          popular: plan.isHighlighted || plan.isFeatured || index === 1, // Usa o campo isHighlighted ou define o segundo plano como popular
+          checkoutLink: plan.checkoutLink
+        }));
+        
+        console.log('Planos carregados da API central:', formattedPlans);
+        setPlans(formattedPlans);
       } catch (error) {
-        console.error("Erro ao buscar planos:", error);
+        console.error("Erro ao buscar planos da API central:", error);
+        // Carregar planos de fallback em caso de erro
+        setPlans([
+          {
+            id: 'basic',
+            title: 'Plano Básico',
+            price: 'R$ 29,90',
+            installments: '6x de R$ 4,98',
+            features: [
+              'Cartão Digital',
+              'QR Code',
+              'Compartilhamento ilimitado',
+              'Personalização básica'
+            ]
+          },
+          {
+            id: 'pro',
+            title: 'Plano Profissional',
+            price: 'R$ 49,90',
+            installments: '6x de R$ 8,32',
+            features: [
+              'Todos os recursos do Plano Básico',
+              'Cartão NFC',
+              'Análise de visualizações',
+              'Integração com redes sociais',
+              'Personalização avançada'
+            ],
+            popular: true
+          },
+          {
+            id: 'business',
+            title: 'Plano Empresarial',
+            price: 'Sob consulta',
+            installments: 'Valores personalizados',
+            features: [
+              'Todos os recursos do Plano Profissional',
+              'Cartões para toda equipe',
+              'Gerenciamento centralizado',
+              'Personalização com marca da empresa',
+              'Suporte prioritário'
+            ]
+          }
+        ]);
       }
     };
     
@@ -471,9 +528,9 @@ export default function Home() {
                               : "bg-white/10 hover:bg-white/20 backdrop-blur-md text-white ring-1 ring-white/20"} 
                               font-poppins rounded-xl text-sm transition-all duration-300`}
                             onClick={() =>
-                              plan.title === "Plano Empresarial"
+                              plan.title === "Plano Empresarial" || !plan.checkoutLink
                                 ? window.location.href = "mailto:contato@tappyid.com"
-                                : handleBuyClick(plan)
+                                : window.location.href = plan.checkoutLink
                             }
                           >
                             {plan.title === "Plano Empresarial"

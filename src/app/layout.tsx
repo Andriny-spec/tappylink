@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   description: "Revolucione seu networking com cartões digitais NFC e QR Code da Tappy ID. Compartilhe seu perfil, redes sociais e contatos com apenas um toque.",
   keywords: "cartões digitais, NFC, QR Code, networking, Tappy ID, cartão de visita digital, tecnologia NFC",
   manifest: "/manifest.json",
+  icons: [
+    { rel: "icon", url: "/favicon.svg" },
+    { rel: "apple-touch-icon", url: "/favicon.svg" }
+  ],
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

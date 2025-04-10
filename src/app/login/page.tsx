@@ -242,12 +242,7 @@ export default function LoginPage() {
               className="flex justify-center mt-8 pt-8 border-t text-sm text-muted-foreground"
               variants={itemVariants}
             >
-              <p>
-                Não tem uma conta?{' '}
-                <Link href="/" className="text-[#17d300] hover:underline">
-                  Cadastre-se
-                </Link>
-              </p>
+             
             </motion.div>
           </div>
         </motion.div>
