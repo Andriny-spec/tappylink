@@ -1,7 +1,7 @@
 // Configuração central do Tappy ID
 
 // URL da API central do Tappy (sistema principal)
-export const TAPPY_API_URL = process.env.NEXT_PUBLIC_TAPPY_API_URL || 'https://tappy.id';
+export const TAPPY_API_URL = process.env.NEXT_PUBLIC_TAPPY_API_URL?.trim() || 'https://tappy.id';
 
 // ID da plataforma no sistema central
 export const PLATFORM_SLUG = 'tappyid';

@@ -91,8 +91,18 @@ export default function Home() {
         // Importar configuração dinamicamente para evitar problemas de SSR
         const { TAPPY_API_URL, PLATFORM_SLUG } = await import('@/config');
         
+        // Construir a URL e verificar que não tenha espaços
+        const apiUrl = `${TAPPY_API_URL}/api/planos/plataforma/${PLATFORM_SLUG}`.trim();
+        console.log('Buscando planos na URL:', apiUrl);
+        
+        // Para desenvolvimento local, podemos usar uma URL alternativa se necessário
+        // Remover este bloco quando estiver tudo funcionando
+        const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+        const urlToUse = isDevelopment ? 'http://localhost:3000/api/planos/plataforma/tappyid' : apiUrl;
+        console.log('URL final utilizada:', urlToUse);
+        
         // Buscar planos da API central do Tappy para a plataforma TappyID
-        const response = await fetch(`${TAPPY_API_URL}/api/planos/plataforma/${PLATFORM_SLUG}`);
+        const response = await fetch(urlToUse);
         
         if (!response.ok) {
           throw new Error(`Erro ao buscar planos: ${response.status}`);
