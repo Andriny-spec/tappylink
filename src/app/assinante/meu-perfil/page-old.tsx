@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { motion, LazyMotion, domAnimation } from "framer-motion";
+// Removendo temporariamente o Framer Motion para resolver problemas de compatibilidade
 import SocialMediaSection from "./components/social-media-section";
 import PhoneInput from "./components/phone-input";
 import BioSection from "./components/bio-section";
@@ -742,20 +742,17 @@ export default function Profile() {
                     </div>
                     
                     {/* Botão de Ver meu Cartão */}
-                    <LazyMotion features={domAnimation}>
-                      <motion.div>
-                        <div className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
-                          <Button 
-                            variant="outline" 
-                            className="w-full mb-4 group relative overflow-hidden"
-                            onClick={() => window.open(`/${session?.user?.id}`, '_blank')}
-                          >
-                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-100/0 via-blue-100/40 to-blue-100/0 transition-all duration-700 ease-in-out -translate-x-full group-hover:translate-x-full"></div>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver meu Cartão Virtual
-                          </Button>
-                        </div>
-                      </motion.div>
+                    <div className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
+                      <Button 
+                        variant="outline" 
+                        className="w-full mb-4 group relative overflow-hidden"
+                        onClick={() => window.open(`/${session?.user?.id}`, '_blank')}
+                      >
+                        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-100/0 via-blue-100/40 to-blue-100/0 transition-all duration-700 ease-in-out -translate-x-full group-hover:translate-x-full"></div>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver meu Cartão Virtual
+                      </Button>
+                    </motion.div>
                     </LazyMotion>
                     
                     {/* Botão de Atualizar Plano */}
@@ -782,7 +779,7 @@ export default function Profile() {
               </div>
             </div>
           </Card>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

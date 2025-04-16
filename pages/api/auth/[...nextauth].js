@@ -7,7 +7,8 @@ import * as argon2 from 'argon2';
 // Apenas uma instância do PrismaClient deve existir
 const prisma = new PrismaClient();
 
-export const authOptions = {
+// Configuração principal do NextAuth
+const authOptions = {
   providers: [
     CredentialsProvider({
       id: 'credentials',
@@ -47,43 +48,44 @@ export const authOptions = {
               password
             );
             
-            console.log('Resultado da verificação de senha:', passwordValid);
+            console.log('Senha válida?', passwordValid);
             
             if (!passwordValid) {
               console.log('Senha inválida para:', email);
               return null;
             }
-          } catch (error) {
-            console.error('Erro ao verificar senha:', error);
+            
+            console.log('Login bem-sucedido para:', email);
+            
+            // Retorna dados do usuário para sessão
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              profileId: user.profile?.id || null
+            };
+          } catch (verifyError) {
+            console.error('Erro ao verificar senha:', verifyError);
             return null;
           }
-          
-          // Retorna dados do usuário
-          console.log('Login bem-sucedido para:', email);
-          return {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            name: user.profile?.name || 'Usuário'
-          };
         } catch (error) {
-          console.error('Erro na autenticação:', error);
+          console.error('Erro ao buscar usuário:', error);
           return null;
         }
       }
     })
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.email = user.email;
         token.role = user.role;
-        token.name = user.name;
+        token.profileId = user.profileId;
       }
       return token;
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
@@ -100,5 +102,14 @@ export const authOptions = {
   debug: process.env.NODE_ENV === 'development'
 };
 
-// Exporta o handler principal do NextAuth
+// Função para retornar as opções de autenticação para uso nas API Routes
+export async function getAuthOptions() {
+  return authOptions;
+}
+
+// Exporta o handler principal do NextAuth usando authOptions diretamente
 export default NextAuth(authOptions);
+
+// Exporta o handler para a API Routes do App Router
+export const GET = NextAuth(authOptions);
+export const POST = NextAuth(authOptions);

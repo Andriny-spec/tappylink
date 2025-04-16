@@ -98,7 +98,7 @@ export default function Home() {
         // Para desenvolvimento local, podemos usar uma URL alternativa se necessário
         // Remover este bloco quando estiver tudo funcionando
         const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-        const urlToUse = isDevelopment ? 'http://localhost:3000/api/planos/plataforma/tappyid' : apiUrl;
+        const urlToUse = isDevelopment ? 'http://localhost:3001/api/planos/plataforma/tappyid' : apiUrl;
         console.log('URL final utilizada:', urlToUse);
         
         // Buscar planos da API central do Tappy para a plataforma TappyID

@@ -168,6 +168,9 @@ async function main() {
   
   // Status de pagamento possíveis
   const statusPagamento = Object.values(PaymentStatus);
+
+  // Status de assinatura possíveis
+  
   
   // Data atual para referência
   const hoje = new Date();
