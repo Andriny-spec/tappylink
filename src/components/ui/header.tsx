@@ -52,7 +52,7 @@ export function Header() {
           <div className="hidden md:flex space-x-4">
             <Button
               className="bg-[#17d300] hover:bg-[#15bb00] text-white"
-              onClick={() => window.location.href = "#planos"}
+              onClick={() => window.location.href = "/registro"}
             >
               Começar Agora
             </Button>

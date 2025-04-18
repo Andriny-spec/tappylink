@@ -25,11 +25,16 @@ import Link from 'next/link';
 
 // Definindo esquema de validação
 const formSchema = z.object({
+  name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
   email: z.string().email('E-mail inválido'),
   password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+  confirmPassword: z.string().min(6, 'A confirmação de senha deve ter pelo menos 6 caracteres'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'As senhas não coincidem',
+  path: ['confirmPassword'],
 });
 
-export default function LoginPage() {
+export default function RegistroPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
@@ -58,53 +63,63 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      console.log('Iniciando login com NextAuth v4');
+      console.log('Iniciando cadastro de usuário');
       
-      // Fazer login sem redirecionamento automático
-      const result = await signIn('credentials', {
-        email: values.email,
-        password: values.password,
-        redirect: false
+      // Fazer requisição para API de cadastro
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+        }),
       });
       
-      if (result?.error) {
-        console.error('Erro na autenticação:', result.error);
-        toast.error('Credenciais inválidas. Tente novamente.');
-        setIsLoading(false);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao cadastrar usuário');
+      }
+      
+      toast.success('Cadastro realizado com sucesso! Fazendo login...');
+      
+      // Fazer login automaticamente após o cadastro
+      const loginResult = await signIn('credentials', {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
+      
+      if (loginResult?.error) {
+        console.error('Erro ao fazer login após cadastro:', loginResult.error);
+        toast.error('Cadastro realizado, mas houve um erro ao fazer login automático. Por favor, faça login manualmente.');
+        setTimeout(() => router.push('/login'), 3000);
         return;
       }
       
-      // Login bem-sucedido
+      // Login bem-sucedido, redirecionar para a página de perfil
       toast.success('Login realizado com sucesso! Redirecionando...');
-      
-      // Buscar a sessão atual para verificar o papel do usuário
-      const session = await fetch('/api/auth/session');
-      const sessionData = await session.json();
-      
-      // Determinar redirecionamento baseado no papel (role) do usuário
-      let redirectTo = '/assinante/meu-perfil'; // Padrão para assinantes
-      
-      // Se for admin, redireciona para o dashboard
-      if (sessionData?.user?.role === 'ADMIN') {
-        redirectTo = '/dashboard';
-      }
-      
-      // Redirecionar após mensagem de sucesso
       setTimeout(() => {
-        window.location.href = redirectTo;
+        router.push('/assinante/meu-perfil');
       }, 1500);
       
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      toast.error('Ocorreu um erro inesperado. Tente novamente.');
+      console.error('Erro ao cadastrar:', error);
+      toast.error(error instanceof Error ? error.message : 'Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
       setIsLoading(false);
     }
   }
@@ -137,7 +152,7 @@ export default function LoginPage() {
   return (
     <>
       <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-slate-950">
-        {/* Coluna de login */}
+        {/* Coluna de cadastro */}
         <motion.div
           className="w-full md:w-1/2 p-8 flex flex-col justify-center items-center"
           variants={containerVariants}
@@ -154,16 +169,34 @@ export default function LoginPage() {
                 className="mb-6"
               />
               <h2 className="text-3xl font-bold tracking-tight text-center mb-1">
-                Bem-vindo de volta
+                Crie sua conta
               </h2>
               <p className="text-sm text-muted-foreground text-center mb-8">
-                Faça login para acessar sua conta
+                Preencha seus dados para criar seu cartão digital
               </p>
             </motion.div>
 
             <motion.div variants={itemVariants}>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome completo</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Seu nome completo"
+                            className="h-12"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <FormField
                     control={form.control}
                     name="email"
@@ -181,20 +214,13 @@ export default function LoginPage() {
                       </FormItem>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <div className="flex items-center justify-between">
-                          <FormLabel>Senha</FormLabel>
-                          <Link
-                            href="/recuperar-senha"
-                            className="text-xs text-muted-foreground hover:text-[#17d300] transition-colors"
-                          >
-                            Esqueceu a senha?
-                          </Link>
-                        </div>
+                        <FormLabel>Senha</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="••••••••"
@@ -207,9 +233,29 @@ export default function LoginPage() {
                       </FormItem>
                     )}
                   />
+                  
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirme sua senha</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="••••••••"
+                            type="password"
+                            className="h-12"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <Button
                     type="submit"
-                    className="w-full h-12 bg-[#17d300] hover:bg-[#17d300]/90 rounded-xl font-medium transition-all"
+                    className="w-full h-12 bg-[#17d300] hover:bg-[#17d300]/90 rounded-xl font-medium transition-all mt-4"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -234,10 +280,10 @@ export default function LoginPage() {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </svg>
-                        Entrando...
+                        Cadastrando...
                       </div>
                     ) : (
-                      'Entrar'
+                      'Criar conta'
                     )}
                   </Button>
                 </form>
@@ -245,10 +291,15 @@ export default function LoginPage() {
             </motion.div>
 
             <motion.div
-              className="flex justify-center mt-8 pt-8 border-t text-sm text-muted-foreground"
+              className="flex justify-center mt-6 pt-6 border-t text-sm text-muted-foreground"
               variants={itemVariants}
             >
-             
+              <p>
+                Já tem uma conta?{' '}
+                <Link href="/login" className="text-[#17d300] hover:underline font-medium">
+                  Faça login
+                </Link>
+              </p>
             </motion.div>
           </div>
         </motion.div>
@@ -269,22 +320,22 @@ export default function LoginPage() {
             >
               <Image
                 src="/login-illustration.svg"
-                alt="Login Illustration"
+                alt="Registration Illustration"
                 width={400}
                 height={400}
                 className="mx-auto"
               />
             </motion.div>
-            <h3 className="text-2xl font-bold mb-4">Transforme sua identidade digital</h3>
+            <h3 className="text-2xl font-bold mb-4">Crie seu cartão digital profissional</h3>
             <p className="text-muted-foreground mb-6">
-              Acesse sua conta para gerenciar seu cartão digital e compartilhar suas informações de forma moderna e profissional.
+              Registre-se para começar a criar seu cartão digital e compartilhar suas informações com estilo e profissionalismo.
             </p>
             <div className="flex justify-center space-x-2">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
                   className={`h-2 w-2 rounded-full ${
-                    i === 1 ? 'bg-[#17d300]' : 'bg-[#17d300]/30'
+                    i === 2 ? 'bg-[#17d300]' : 'bg-[#17d300]/30'
                   }`}
                 />
               ))}
@@ -292,6 +343,7 @@ export default function LoginPage() {
           </div>
         </motion.div>
       </div>
+      <Toaster position="bottom-right" />
     </>
   );
 }

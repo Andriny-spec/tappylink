@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { motion, LazyMotion, domAnimation } from "framer-motion";
+// Removido Framer Motion para evitar problemas de renderização
 import SocialMediaSection from "./components/social-media-section";
 import PhoneInput from "./components/phone-input";
 import BioSection from "./components/bio-section";
@@ -39,7 +39,10 @@ import {
   RefreshCw,
   Sparkles,
   Edit3,
-  Loader2
+  Loader2,
+  CircleUser,
+  User,
+  Crown
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { usePWA } from "@/hooks/use-pwa";
@@ -72,8 +75,8 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
   const [bioAnimation, setBioAnimation] = useState(false);
-  // @ts-ignore - ignorando TypeScript para o useRef pois o tipo é compatível
-  const bioButtonRef = useRef<HTMLButtonElement>(null);
+  // Corrigindo a tipagem do ref para o botão de geração de bio
+  const bioButtonRef = useRef<HTMLButtonElement | null>(null);
   
   // Interfaces para tipagem
   interface Estado {
@@ -178,9 +181,10 @@ export default function Profile() {
         if (response.ok) {
           const data = await response.json();
           
+          // Mapear os campos do backend para o frontend (corrigindo a inconsistência entre bio e biography)
           setProfile({
             name: data.profile.name || "",
-            bio: data.profile.bio || "",
+            bio: data.profile.biography || "",  // Aqui fazemos o mapeamento de biography -> bio
             photo: data.profile.photo || "",
             role: data.profile.role || "",
             phone: data.profile.phone || "",
@@ -210,7 +214,7 @@ export default function Profile() {
           }
           
         } else {
-          console.error('Erro ao carregar perfil');
+          console.error('Erro ao carregar perfil - resposta não foi ok:', response.status, response.statusText);
           toast({
             title: "Erro ao carregar perfil",
             description: "Não foi possível carregar suas informações. Tente novamente mais tarde.",
@@ -218,7 +222,7 @@ export default function Profile() {
           });
         }
       } catch (error) {
-        console.error('Erro ao carregar perfil:', error);
+        console.error('Erro ao carregar perfil - exceção:', error);
         toast({
           title: "Erro ao carregar perfil",
           description: "Ocorreu um erro ao tentar carregar suas informações.",
@@ -354,7 +358,7 @@ export default function Profile() {
         },
         body: JSON.stringify({
           name: profile.name,
-          bio: profile.bio,
+          biography: profile.bio, // Corrigindo nome do campo para corresponder ao backend
           phone: profile.phone,
           address: profile.address,
           city: profile.city,
@@ -373,8 +377,11 @@ export default function Profile() {
       if (response.ok) {
         setIsEditing(false);
         toast({
-          title: "Perfil salvo!",
-          description: "Suas informações foram atualizadas com sucesso.",
+          title: "Perfil atualizado com sucesso! ✅",
+          description: "Suas informações foram salvas e já estão disponíveis no seu cartão virtual.",
+          variant: "default",
+          duration: 5000, // Mostrar por mais tempo (5 segundos)
+          className: "bg-green-50 border border-green-200 text-green-800",
         });
       } else {
         const error = await response.json();
@@ -472,24 +479,24 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto space-y-8 animate-fade-in-down">
+        <div className="max-w-2xl mx-auto space-y-8">
           {/* Header - mesmo estilo da página de planos */}
           <div className="text-center mb-8 max-w-lg mx-auto">
-            <Badge className="bg-[#17d300]/10 text-[#106e00] hover:bg-[#17d300]/20 border-0 mb-3">
+            <Badge className="bg-[#17d300]/10 text-[#106e00] hover:bg-[#17d300]/20 border-0 mb-3 font-medium">
               Área do Assinante
             </Badge>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               Meu Perfil Profissional
             </h1>
-            <p className="text-sm text-gray-600 max-w-md mx-auto">
+            <p className="text-sm text-gray-600 max-w-md mx-auto font-medium">
               Personalize seu cartão virtual e compartilhe com seus clientes
             </p>
           </div>
 
           {/* Profile Card */}
-          <Card className="p-8">
+          <Card className="p-8 shadow-md border border-gray-200">
             <div className="space-y-8">
               {/* Photo Upload */}
               <div className="flex flex-col items-center gap-4">
@@ -524,18 +531,14 @@ export default function Profile() {
               {/* Form Fields */}
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">
                     Nome Completo
                   </label>
                   <Input
-                    {... isEditing 
-                      ? { 
-                        value: profile.name,
-                        onChange: (e) => setProfile(prev => ({ ...prev, name: e.target.value })) 
-                      } 
-                      : { defaultValue: profile.name }
-                    }
+                    value={profile.name || ""}
+                    onChange={(e) => isEditing && setProfile(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Seu nome completo"
+                    className="border border-gray-300 rounded-md shadow-sm focus:border-[#17d300] focus:ring-[#17d300] text-gray-900"
                     disabled={!isEditing}
                   />
                 </div>
@@ -553,7 +556,7 @@ export default function Profile() {
 
                 {/* Contato */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-1 mb-2">
                     Contato
                   </h3>
                   
@@ -582,7 +585,7 @@ export default function Profile() {
 
                 {/* Localização */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-1 mb-2">
                     Localização
                   </h3>
                   
@@ -590,14 +593,10 @@ export default function Profile() {
                     <div className="flex items-center gap-3">
                       <MapPin className="w-5 h-5 text-gray-600" />
                       <Input
-                        {... isEditing 
-                          ? { 
-                            value: profile.address,
-                            onChange: (e) => setProfile(prev => ({ ...prev, address: e.target.value })) 
-                          } 
-                          : { defaultValue: profile.address }
-                        }
+                        value={profile.address || ""}
+                        onChange={(e) => isEditing && setProfile(prev => ({ ...prev, address: e.target.value }))}
                         placeholder="Seu endereço"
+                        className="border border-gray-300 rounded-md shadow-sm focus:border-[#17d300] focus:ring-[#17d300] text-gray-900"
                         disabled={!isEditing}
                       />
                     </div>
@@ -606,16 +605,13 @@ export default function Profile() {
                       <div>
                         <Select
                           disabled={!isEditing}
-                          {...(isEditing
-                            ? {
-                                value: profile.state,
-                                onValueChange: (value) => {
-                                  setSelectedEstado(value);
-                                  setProfile(prev => ({ ...prev, state: value }));
-                                }
-                              }
-                            : { defaultValue: profile.state }
-                          )}
+                          value={profile.state || ""}
+                          onValueChange={(value) => {
+                            if (isEditing) {
+                              setSelectedEstado(value);
+                              setProfile(prev => ({ ...prev, state: value }));
+                            }
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Estado" />
@@ -633,15 +629,12 @@ export default function Profile() {
                       <div>
                         <Select
                           disabled={!isEditing || !selectedEstado}
-                          {...(isEditing && selectedEstado
-                            ? {
-                                value: profile.city,
-                                onValueChange: (value) => {
-                                  setProfile(prev => ({ ...prev, city: value }));
-                                }
-                              }
-                            : { defaultValue: profile.city }
-                          )}
+                          value={profile.city || ""}
+                          onValueChange={(value) => {
+                            if (isEditing && selectedEstado) {
+                              setProfile(prev => ({ ...prev, city: value }));
+                            }
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Cidade" />
@@ -717,55 +710,91 @@ export default function Profile() {
                       </Card>
                     </div>
                     
-                    {/* Plano atual - Alternativa animada */}
-                    <div className="mb-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm overflow-hidden relative animate-fade-in-down">
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-green-400 opacity-10 rounded-full -mr-6 -mt-6"></div>
-                      <div className="absolute bottom-0 left-0 w-16 h-16 bg-emerald-400 opacity-10 rounded-full -ml-4 -mb-4"></div>
+                    {/* Plano atual - Design mais moderno */}
+                    <div className="mb-5 p-5 bg-[#e7f8ef] rounded-xl border border-[#17d300]/30 shadow-md overflow-hidden relative">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-[#17d300] opacity-5 rounded-full -mr-10 -mt-10"></div>
+                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#17d300] opacity-5 rounded-full -ml-8 -mb-8"></div>
                       
-                      <div className="text-sm font-medium text-green-800 mb-3 flex items-center">
-                        <Shield className="w-4 h-4 mr-2 text-green-600" />
+                      <div className="text-sm font-medium text-[#106e00] mb-3 flex items-center">
+                        <Shield className="w-5 h-5 mr-2 text-[#17d300]" />
                         <span>Seu plano atual:</span>
                       </div>
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-bold text-lg text-green-700">{subscription.planName}</h3>
-                          <p className="text-xs text-green-600 mt-1 flex items-center">
-                            <CheckCircle2 className="w-3 h-3 mr-1" /> Ativo
+                          <h3 className="font-bold text-xl text-[#106e00]">{subscription.planName}</h3>
+                          <p className="text-sm text-[#17d300] mt-1 flex items-center">
+                            <CheckCircle2 className="w-4 h-4 mr-1" /> Ativo
                           </p>
                         </div>
                         
-                        <div className="bg-white p-2 rounded-lg shadow-sm border border-green-100 hover:scale-105 transition-transform">
-                          <Shield className="w-8 h-8 text-green-500" />
+                        <div className="bg-white p-3 rounded-lg shadow-md border border-[#17d300]/20 hover:scale-105 transition-transform">
+                          <Shield className="w-10 h-10 text-[#17d300]" />
                         </div>
                       </div>
                     </div>
                     
-                    {/* Botão de Ver meu Cartão */}
-                    <LazyMotion features={domAnimation}>
-                      <motion.div>
-                        <div className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
-                          <Button 
-                            variant="outline" 
-                            className="w-full mb-4 group relative overflow-hidden"
-                            onClick={() => window.open(`/${session?.user?.id}`, '_blank')}
-                          >
-                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-100/0 via-blue-100/40 to-blue-100/0 transition-all duration-700 ease-in-out -translate-x-full group-hover:translate-x-full"></div>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Ver meu Cartão Virtual
-                          </Button>
-                        </div>
-                      </motion.div>
-                    </LazyMotion>
+                    {/* Botão de Ver meu Cartão - Design aprimorado */}
+                    <div className="hover:scale-[1.02] active:scale-[0.98] transition-transform mb-5">
+                      <Button 
+                        variant="default" 
+                        className="w-full h-14 group relative overflow-hidden bg-[#0a2540] hover:bg-[#0d2e4d] text-white font-medium text-base shadow-lg border border-[#0a2540]/90"
+                        onClick={() => window.open(`/cartao/${session?.user?.id}`, '_blank')}
+                      >
+                        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-400/0 via-blue-400/20 to-blue-400/0 transition-all duration-700 ease-in-out -translate-x-full group-hover:translate-x-full"></div>
+                        <Eye className="w-5 h-5 mr-3" />
+                        Ver meu Cartão Virtual
+                      </Button>
+                    </div>
                     
-                    {/* Botão de Atualizar Plano */}
+                    {/* Botões de IA - Premium/Bloqueados com visual aprimorado */}
+                    <div className="space-y-4 mb-5">
+                      {/* Tappy IA */}
+                      <div className="relative group">
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-14 bg-gradient-to-r from-[#f1eaff] to-[#e8e1ff] border-purple-300 hover:border-purple-400 text-purple-700 font-medium shadow-sm"
+                          disabled={true}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-purple-600/10 to-indigo-600/5 opacity-80"></div>
+                          <Sparkles className="w-5 h-5 mr-3 text-purple-600" />
+                          <span className="mr-2">Tappy IA (Melhore seu perfil)</span>
+                        </Button>
+                        <div className="absolute top-0 right-0 -mt-2 -mr-2 transition-transform group-hover:scale-110">
+                          <Badge className="bg-amber-500 text-white font-medium px-3 py-1 shadow-md border border-amber-600/30">
+                            Premium
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {/* Criar Redes Sociais com IA */}
+                      <div className="relative group">
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-14 bg-gradient-to-r from-[#e6f5ff] to-[#ddf0ff] border-blue-300 hover:border-blue-400 text-blue-700 font-medium shadow-sm"
+                          disabled={true}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-blue-600/10 to-cyan-600/5 opacity-80"></div>
+                          <Share2 className="w-5 h-5 mr-3 text-blue-600" />
+                          <span className="mr-2">Criar redes sociais com IA</span>
+                        </Button>
+                        <div className="absolute top-0 right-0 -mt-2 -mr-2 transition-transform group-hover:scale-110">
+                          <Badge className="bg-amber-500 text-white font-medium px-3 py-1 shadow-md border border-amber-600/30">
+                            Premium
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Botão de Fazer Upgrade com destaque */}
                     <Button 
-                      variant="outline" 
-                      className="w-full mb-4"
+                      variant="default" 
+                      className="w-full h-14 mb-5 bg-[#17d300] hover:bg-[#15bb00] text-white font-medium text-base shadow-lg border border-[#17d300]/80 relative overflow-hidden group"
                       onClick={() => window.location.href = "/#planos"}
                     >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Conheça o Tappy Whats
+                      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#17d300]/0 via-[#ffffff]/20 to-[#17d300]/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                      <Crown className="w-5 h-5 mr-3" />
+                      Fazer Upgrade
                     </Button>
                     
                     {/* Botão de Logout */}
@@ -775,7 +804,7 @@ export default function Profile() {
                       onClick={() => signOut({ callbackUrl: '/login' })}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
-                      Sair da Conta
+                      <span>Sair da Conta</span>
                     </Button>
                   </>
                 )}

@@ -1,38 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { auth } from "../../../../lib/auth";
+import { getToken } from "next-auth/jwt";
 
 const prisma = new PrismaClient();
 
 // GET: Buscar dados do perfil
 export async function GET(request: NextRequest) {
+  const prisma = new PrismaClient();
+  
   try {
-    const session = await auth();
-
-    if (!session || !session.user) {
+    // Obter token JWT diretamente da requisição
+    const token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET || "tappyid-secret-key"
+    });
+    
+    if (!token || !token.sub) {
       return NextResponse.json(
         { error: "Não autorizado" },
         { status: 401 }
       );
     }
-
+    
     // Verificar se é um assinante
-    if (session.user.role !== "ASSINANTE") {
+    if (token.role !== "ASSINANTE") {
       return NextResponse.json(
         { error: "Acesso negado. Apenas assinantes podem acessar este recurso." },
         { status: 403 }
       );
     }
-
+    
+    // Usar userId do token ou da query
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId || userId !== session.user.id) {
+    const userId = searchParams.get("userId") || token.sub;
+    
+    // Verificar se o usuário está tentando acessar seu próprio perfil
+    if (userId !== token.sub) {
       return NextResponse.json(
-        { error: "Parâmetros inválidos" },
-        { status: 400 }
+        { error: "Você só pode acessar seu próprio perfil" },
+        { status: 403 }
       );
     }
+
+
 
     // Buscar perfil do usuário
     const userProfile = await prisma.profile.findUnique({
@@ -53,7 +63,8 @@ export async function GET(request: NextRequest) {
       clicks: 0
     };
 
-    return NextResponse.json({ ...userProfile, ...metrics });
+    // Retornando o perfil no formato esperado pelo frontend
+    return NextResponse.json({ profile: userProfile, metrics });
   } catch (error) {
     console.error("Erro ao buscar perfil:", error);
     return NextResponse.json(
@@ -67,44 +78,53 @@ export async function GET(request: NextRequest) {
 
 // PUT: Atualizar dados do perfil
 export async function PUT(request: NextRequest) {
+  const prisma = new PrismaClient();
+  
   try {
-    const session = await auth();
-
-    if (!session || !session.user) {
+    // Obter token JWT diretamente da requisição
+    const token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET || "tappyid-secret-key"
+    });
+    
+    if (!token || !token.sub) {
       return NextResponse.json(
         { error: "Não autorizado" },
         { status: 401 }
       );
     }
-
+    
     // Verificar se é um assinante
-    if (session.user.role !== "ASSINANTE") {
+    if (token.role !== "ASSINANTE") {
       return NextResponse.json(
         { error: "Acesso negado. Apenas assinantes podem atualizar perfil." },
         { status: 403 }
       );
     }
-
+    
     const body = await request.json();
     const { userId, ...profileData } = body;
-
-    if (!userId || userId !== session.user.id) {
+    
+    // Garantir que o usuário só pode atualizar seu próprio perfil
+    const userIdToUse = token.sub;
+    
+    if (userId && userId !== userIdToUse) {
       return NextResponse.json(
-        { error: "Parâmetros inválidos" },
-        { status: 400 }
+        { error: "Você só pode atualizar seu próprio perfil" },
+        { status: 403 }
       );
     }
 
     // Verificar se o perfil existe
     const existingProfile = await prisma.profile.findUnique({
-      where: { userId }
+      where: { userId: userIdToUse }
     });
 
     if (!existingProfile) {
       // Se não existe, criar um novo
       await prisma.profile.create({
         data: {
-          userId,
+          userId: userIdToUse,
           name: profileData.name || "",
           biography: profileData.biography || "",
           photo: profileData.photo || "",
@@ -123,7 +143,7 @@ export async function PUT(request: NextRequest) {
     } else {
       // Se existe, atualizar
       await prisma.profile.update({
-        where: { userId },
+        where: { userId: userIdToUse },
         data: {
           name: profileData.name,
           biography: profileData.biography,

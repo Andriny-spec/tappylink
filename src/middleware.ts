@@ -62,5 +62,6 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/assinante/:path*',
+    '/login',
   ],
 }

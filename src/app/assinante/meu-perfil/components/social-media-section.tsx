@@ -42,10 +42,10 @@ export default function SocialMediaSection({
   isEditing
 }: SocialMediaSectionProps) {
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-1 mb-2">
         Redes Sociais
-      </label>
+      </h3>
       
       {/* Facebook */}
       <div className="flex items-center space-x-2 mb-2">
@@ -54,15 +54,10 @@ export default function SocialMediaSection({
         </div>
         <Input
           placeholder="Link do Facebook"
-          {... isEditing 
-            ? { 
-              value: profile.facebook,
-              onChange: (e) => setProfile((prev: ProfileData) => ({ ...prev, facebook: e.target.value })) 
-            } 
-            : { defaultValue: profile.facebook }
-          }
+          value={profile.facebook || ""}
+          onChange={(e) => isEditing && setProfile((prev: ProfileData) => ({ ...prev, facebook: e.target.value }))}
           disabled={!isEditing}
-          className={isEditing ? "focus-within:ring-blue-600 focus-within:border-blue-600" : ""}
+          className={`border border-gray-300 rounded-md shadow-sm text-gray-900 ${isEditing ? "focus:ring-blue-600 focus:border-blue-600" : ""}`}
         />
       </div>
       
@@ -73,15 +68,10 @@ export default function SocialMediaSection({
         </div>
         <Input
           placeholder="Link do Instagram"
-          {... isEditing 
-            ? { 
-              value: profile.instagram,
-              onChange: (e) => setProfile((prev: ProfileData) => ({ ...prev, instagram: e.target.value })) 
-            } 
-            : { defaultValue: profile.instagram }
-          }
+          value={profile.instagram || ""}
+          onChange={(e) => isEditing && setProfile((prev: ProfileData) => ({ ...prev, instagram: e.target.value }))}
           disabled={!isEditing}
-          className={isEditing ? "focus-within:ring-pink-600 focus-within:border-pink-600" : ""}
+          className={`border border-gray-300 rounded-md shadow-sm text-gray-900 ${isEditing ? "focus:ring-pink-600 focus:border-pink-600" : ""}`}
         />
       </div>
       
@@ -92,15 +82,10 @@ export default function SocialMediaSection({
         </div>
         <Input
           placeholder="Link do LinkedIn"
-          {... isEditing 
-            ? { 
-              value: profile.linkedin,
-              onChange: (e) => setProfile((prev: ProfileData) => ({ ...prev, linkedin: e.target.value })) 
-            } 
-            : { defaultValue: profile.linkedin }
-          }
+          value={profile.linkedin || ""}
+          onChange={(e) => isEditing && setProfile((prev: ProfileData) => ({ ...prev, linkedin: e.target.value }))}
           disabled={!isEditing}
-          className={isEditing ? "focus-within:ring-blue-800 focus-within:border-blue-800" : ""}
+          className={`border border-gray-300 rounded-md shadow-sm text-gray-900 ${isEditing ? "focus:ring-blue-800 focus:border-blue-800" : ""}`}
         />
       </div>
       
@@ -111,15 +96,10 @@ export default function SocialMediaSection({
         </div>
         <Input
           placeholder="Seu Telegram"
-          {... isEditing 
-            ? { 
-              value: profile.telegram,
-              onChange: (e) => setProfile((prev: ProfileData) => ({ ...prev, telegram: e.target.value })) 
-            } 
-            : { defaultValue: profile.telegram }
-          }
+          value={profile.telegram || ""}
+          onChange={(e) => isEditing && setProfile((prev: ProfileData) => ({ ...prev, telegram: e.target.value }))}
           disabled={!isEditing}
-          className={isEditing ? "focus-within:ring-blue-500 focus-within:border-blue-500" : ""}
+          className={`border border-gray-300 rounded-md shadow-sm text-gray-900 ${isEditing ? "focus:ring-blue-500 focus:border-blue-500" : ""}`}
         />
       </div>
       
@@ -130,15 +110,10 @@ export default function SocialMediaSection({
         </div>
         <Input
           placeholder="Seu TikTok"
-          {... isEditing 
-            ? { 
-              value: profile.tiktok,
-              onChange: (e) => setProfile((prev: ProfileData) => ({ ...prev, tiktok: e.target.value })) 
-            } 
-            : { defaultValue: profile.tiktok }
-          }
+          value={profile.tiktok || ""}
+          onChange={(e) => isEditing && setProfile((prev: ProfileData) => ({ ...prev, tiktok: e.target.value }))}
           disabled={!isEditing}
-          className={isEditing ? "focus-within:ring-gray-900 focus-within:border-gray-900" : ""}
+          className={`border border-gray-300 rounded-md shadow-sm text-gray-900 ${isEditing ? "focus:ring-gray-900 focus:border-gray-900" : ""}`}
         />
       </div>
       
@@ -165,8 +140,6 @@ export default function SocialMediaSection({
                   Mantenha sua biografia atualizada com suas conquistas recentes
                 </li>
                 <li className="flex items-center gap-1 animate-fade-in-down" style={{animationDelay: '0.4s'}}>
-                  transition={{ delay: 0.6 }}
-                >
                   <CheckCircle2 className="h-3 w-3 flex-shrink-0" /> 
                   Inclua número de telefone com DDD para facilitar o contato
                 </li>

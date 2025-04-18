@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import { motion, LazyMotion, domAnimation } from 'framer-motion';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,11 +11,12 @@ interface BioSectionProps {
   isEditing: boolean;
   isGenerating: boolean;
   bioAnimation: boolean;
-  bioButtonRef: React.RefObject<HTMLButtonElement>;
+  bioButtonRef: React.RefObject<HTMLButtonElement | null>;
   onBioChange: (value: string) => void;
   onGenerateBio: () => void;
 }
 
+// Componente reescrito sem usar Framer Motion para evitar problemas de renderização de objetos
 export default function BioSection({
   bio,
   isEditing,
@@ -26,19 +26,6 @@ export default function BioSection({
   onBioChange,
   onGenerateBio
 }: BioSectionProps) {
-  // Definimos as propriedades de animação fora do JSX para evitar renderização direta de objetos
-  const textareaAnimationProps = {
-    initial: { opacity: 1 },
-    animate: { opacity: bioAnimation ? 0.7 : 1 },
-    transition: { duration: 0.3 }
-  };
-
-  const bioBoxAnimationProps = {
-    className: "relative overflow-hidden rounded-md",
-    whileHover: { scale: 1.01 },
-    transition: { duration: 0.2 }
-  };
-
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
@@ -59,36 +46,30 @@ export default function BioSection({
       </div>
       
       {isEditing ? (
-        <LazyMotion features={domAnimation}>
-          <motion.div {...textareaAnimationProps}>
-            <Textarea 
-              id="bio"
-              value={bio}
-              onChange={(e) => onBioChange(e.target.value)}
-              placeholder="Conte um pouco sobre você e seu trabalho..."
-              className="resize-none min-h-[150px]"
-            />
-            <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-              <span>{bio.length}</span>/400 caracteres
-              {bio.length > 300 && bio.length <= 400 && (
-                <span className="text-amber-500">• Quase no limite</span>
-              )}
-              {bio.length > 400 && (
-                <span className="text-red-500">• Excedeu o limite</span>
-              )}
-            </div>
-          </motion.div>
-        </LazyMotion>
+        <div className={`transition-opacity duration-300 ${bioAnimation ? 'opacity-70' : 'opacity-100'}`}>
+          <Textarea 
+            id="bio"
+            value={bio}
+            onChange={(e) => onBioChange(e.target.value)}
+            placeholder="Conte um pouco sobre você e seu trabalho..."
+            className="resize-none min-h-[150px]"
+          />
+          <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+            <span>{bio.length}</span>/400 caracteres
+            {bio.length > 300 && bio.length <= 400 && (
+              <span className="text-amber-500">• Quase no limite</span>
+            )}
+            {bio.length > 400 && (
+              <span className="text-red-500">• Excedeu o limite</span>
+            )}
+          </div>
+        </div>
       ) : (
-        <LazyMotion features={domAnimation}>
-          <motion.div {...bioBoxAnimationProps}>
-            <motion.p 
-              className="text-sm text-gray-700 p-3 bg-gray-50 rounded-md min-h-[100px] whitespace-pre-wrap"
-            >
-              {bio || "Nenhuma biografia adicionada."}
-            </motion.p>
-          </motion.div>
-        </LazyMotion>
+        <div className="relative overflow-hidden rounded-md hover:scale-[1.01] transition-transform duration-200">
+          <div className="text-sm text-gray-700 p-3 bg-gray-50 rounded-md min-h-[100px] whitespace-pre-wrap">
+            {bio || "Nenhuma biografia adicionada."}
+          </div>
+        </div>
       )}
     </div>
   );

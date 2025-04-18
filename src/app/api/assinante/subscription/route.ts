@@ -1,38 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { auth } from "../../../../lib/auth";
+import { getToken } from "next-auth/jwt";
 
 const prisma = new PrismaClient();
 
 // GET: Buscar dados da assinatura
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session || !session.user) {
+    // Obter token JWT diretamente da requisição
+    const token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET || "tappyid-secret-key"
+    });
+    
+    if (!token || !token.sub) {
       return NextResponse.json(
         { error: "Não autorizado" },
         { status: 401 }
       );
     }
-
+    
     // Verificar se é um assinante
-    if (session.user.role !== "ASSINANTE") {
+    if (token.role !== "ASSINANTE") {
       return NextResponse.json(
         { error: "Acesso negado. Apenas assinantes podem acessar este recurso." },
         { status: 403 }
       );
     }
-
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId || userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Parâmetros inválidos" },
-        { status: 400 }
-      );
-    }
+    
+    // Usar userId do token
+    const userId = token.sub;
 
     // Buscar assinatura ativa do usuário utilizando SQL via Prisma
     const activeSubscriptions = await prisma.$queryRaw`

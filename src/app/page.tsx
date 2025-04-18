@@ -9,6 +9,8 @@ import { Footer } from "@/components/ui/footer";
 import { FeaturesCarousel } from "@/components/ui/features-carousel";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { Player } from '@lottiefiles/react-lottie-player';
+import { InteractiveGlassCard } from "@/components/ui/interactive-glass-card";
 
 import {
   Accordion,
@@ -17,6 +19,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import TypewriterText from "@/components/ui/typewriter-text";
+import Sparkles from "@/components/icons/sparkles";
 
 export default function Home() {
   const faqRef = useRef<HTMLDivElement>(null);
@@ -420,7 +423,7 @@ export default function Home() {
                     <h3 className="text-xl font-semibold text-white mb-4 font-poppins">
                       {step.title}
                     </h3>
-                    <p className="text-gray-400 font-poppins">
+                    <p className="text-gray-300 font-poppins">
                       {step.description}
                     </p>
                   </motion.div>
@@ -627,13 +630,7 @@ export default function Home() {
                       className="relative w-full max-w-md"
                     >
                       <div className="w-full flex items-center justify-center">
-                        <Image
-                          src="/images/business-illustration.png"
-                          alt="Negócios digitais"
-                          width={400}
-                          height={400}
-                          className="w-full max-w-[400px] h-auto"
-                        />
+                        <InteractiveGlassCard />
                       </div>
                     </motion.div>
                   </div>
@@ -717,6 +714,8 @@ export default function Home() {
               </motion.div>
             </div>
           </section>
+
+
         </div>
       </main>
       <Footer />
