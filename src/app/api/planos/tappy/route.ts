@@ -1,49 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 /**
- * Endpoint para buscar planos do Tappy.id específicos para a plataforma TappyLink
+ * Endpoint para buscar planos específicos para a plataforma TappyLink
  */
 export async function GET(request: NextRequest) {
   try {
-    // URL da API do Tappy para buscar planos para a plataforma TappyLink
-    let tappyApiUrl;
-    
-    // Em desenvolvimento, usar URL local
-    if (process.env.NODE_ENV === "development") {
-      // Assumindo que o projeto principal Tappy está rodando na porta 3000
-      tappyApiUrl = "http://localhost:3000/api/planos?platform=tappylink";
-    } else {
-      // Em produção, usar a URL do servidor real
-      tappyApiUrl = "https://tappy.id/api/planos?platform=tappylink";
-    }
-    
-    // Headers para a requisição
-    const headers = {
-      "Content-Type": "application/json",
-      // Adicione aqui a chave de API se necessário
-      // "Authorization": `Bearer ${process.env.TAPPY_API_KEY}`
-    };
+    // Buscar planos do banco de dados local
+    const dbPlans = await prisma.plan.findMany({
+      where: {
+        isActive: true
+      },
+      orderBy: {
+        price: 'asc'
+      }
+    });
 
-    // Faz a requisição para a API do Tappy.id
-    const response = await fetch(tappyApiUrl, { headers });
-    
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar planos: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
+    // Converter para o formato esperado pela interface
+    const plans = dbPlans.map(plan => ({
+      id: plan.id,
+      title: plan.name,
+      price: `R$ ${Number(plan.price).toFixed(2).replace('.', ',')}`,
+      installments: `6x de R$ ${(Number(plan.price) / 6).toFixed(2).replace('.', ',')}`,
+      popular: plan.name.toLowerCase().includes('prata'),
+      features: plan.features,
+      originalPrice: plan.price
+    }));
+
     // Retorna os planos
-    return NextResponse.json({ planos: data.plans || data });
+    return NextResponse.json(plans);
+
   } catch (error) {
-    console.error("Erro ao buscar planos do Tappy.id:", error);
+    console.error("Erro ao buscar planos:", error);
     
-    // Retornar erro com status 503 (Serviço indisponível)
+    // Retorna um erro 503 (Serviço Indisponível) com uma mensagem amigável
     return NextResponse.json(
       { 
-        erro: "Serviço indisponível", 
-        mensagem: "Os planos estão temporariamente indisponíveis. Por favor, tente novamente mais tarde.",
-        detalhes: error instanceof Error ? error.message : "Erro desconhecido" 
+        error: true, 
+        message: "Serviço de planos temporariamente indisponível. Tente novamente mais tarde."
       },
       { status: 503 }
     );
