@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function GET(request: NextRequest) {
   try {
-    // URL da API pública do Tappy para buscar planos
-    const tappyApiUrl = "https://www.tappy.id/api/planos/publicos";
+    // URL da API específica para planos do TappyLink
+    const tappyApiUrl = "https://www.tappy.id/api/planos/tappylink";
     
     // Fazer a requisição
     const response = await fetch(tappyApiUrl, {
