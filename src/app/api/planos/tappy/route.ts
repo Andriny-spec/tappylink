@@ -1,59 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 /**
- * Endpoint para buscar planos do Tappy.id específicos para a plataforma TappyLink
+ * Endpoint para buscar planos do banco de dados do TappyLink
+ * Uma solução REAL que funcionará sempre e se adaptará a mudanças nos planos
  */
 export async function GET(request: NextRequest) {
   try {
-    // URL da API específica para planos do TappyLink
-    const tappyApiUrl = "https://www.tappy.id/api/planos/tappylink";
-    
-    // Fazer a requisição
-    const response = await fetch(tappyApiUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    // Buscar planos do banco de dados do TappyLink
+    const dbPlans = await prisma.plan.findMany({
+      where: {
+        isActive: true
       },
-      cache: 'no-store'
+      orderBy: {
+        price: 'asc'
+      }
     });
-    
-    if (!response.ok) {
-      console.error(`API respondeu com status: ${response.status}`);
-      throw new Error(`Erro ao buscar planos: ${response.status}`);
+
+    // Se não houver planos no banco, isso significa que o seed não foi executado
+    if (dbPlans.length === 0) {
+      return NextResponse.json(
+        { 
+          error: true, 
+          message: "Nenhum plano disponível no momento. Entre em contato com o suporte."
+        },
+        { status: 404 }
+      );
     }
-    
-    // Processar a resposta
-    const data = await response.json();
-    
-    // Filtrar apenas os planos para a plataforma TappyLink
-    const tappyLinkPlans = data.planos?.filter((plan: any) => 
-      plan.platform?.slug === 'tappylink' || 
-      (plan.platform?.name && plan.platform.name.toLowerCase().includes('link'))
-    ) || [];
-    
-    if (tappyLinkPlans.length === 0) {
-      console.log("Nenhum plano encontrado para TappyLink");
-      throw new Error("Nenhum plano encontrado para a plataforma TappyLink");
-    }
-    
+
     // Mapear os planos para o formato esperado pelo frontend
-    const plans = tappyLinkPlans.map((plan: any) => ({
+    const plans = dbPlans.map(plan => ({
       id: plan.id,
       title: plan.name,
       price: `R$ ${Number(plan.price).toFixed(2).replace('.', ',')}`,
       installments: `6x de R$ ${(Number(plan.price) / 6).toFixed(2).replace('.', ',')}`,
-      popular: plan.name.toLowerCase().includes('profissional'),
+      popular: plan.name.toLowerCase().includes('prata') || plan.name.toLowerCase().includes('profissional'),
       features: plan.features || [],
-      originalPrice: plan.price,
-      checkoutUrl: `https://link.tappy.id/checkout/${plan.id}`
+      originalPrice: Number(plan.price),
+      checkoutUrl: `/checkout/${plan.id}`
     }));
-    
+
     return NextResponse.json(plans);
 
   } catch (error) {
-    console.error("Erro ao buscar planos do Tappy.id:", error);
+    console.error("Erro ao buscar planos:", error);
     
-    // Retorna um erro 503 sem mockar dados
+    // Retorna um erro 503
     return NextResponse.json(
       { 
         error: true, 
