@@ -71,6 +71,7 @@ model Profile {
   tiktok      String?
   photo       String?
   qrCodeId    String   @unique @default(cuid()) // ID único para QR Code
+  premium     Boolean  @default(false) // Indica se o usuário tem acesso a recursos premium
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

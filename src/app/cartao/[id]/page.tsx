@@ -37,6 +37,7 @@ interface ProfileData {
   whatsapp: string;
   telegram: string;
   tiktok: string;
+  premium: boolean;
 }
 
 export default function CartaoVirtual() {
@@ -325,19 +326,30 @@ export default function CartaoVirtual() {
                 <div className="flex flex-col items-center">
                   <div className="bg-white p-3 rounded-lg shadow-sm mb-2 relative">
                     <div className="relative">
-                      {/* QR Code borrado */}
-                      <img 
-                        src={qrCodeUrl} 
-                        alt="QR Code do Cartão Virtual" 
-                        className="w-40 h-40 blur-md opacity-50"
-                      />
-                      {/* Overlay de upgrade */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="bg-white/80 px-3 py-1 rounded-full text-xs font-bold text-[#17d300] mb-2">
-                          PREMIUM
-                        </div>
-                        <p className="text-center text-sm font-semibold bg-white/80 px-3 py-1 rounded">Faça upgrade para<br/>acessar o QR Code</p>
-                      </div>
+                      {profile?.premium ? (
+                        // QR Code nítido para usuários premium
+                        <img 
+                          src={qrCodeUrl} 
+                          alt="QR Code do Cartão Virtual" 
+                          className="w-40 h-40"
+                        />
+                      ) : (
+                        // QR Code borrado para usuários não premium
+                        <>
+                          <img 
+                            src={qrCodeUrl} 
+                            alt="QR Code do Cartão Virtual" 
+                            className="w-40 h-40 blur-md opacity-50"
+                          />
+                          {/* Overlay de upgrade */}
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <div className="bg-white/80 px-3 py-1 rounded-full text-xs font-bold text-[#17d300] mb-2">
+                              PREMIUM
+                            </div>
+                            <p className="text-center text-sm font-semibold bg-white/80 px-3 py-1 rounded">Faça upgrade para<br/>acessar o QR Code</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                   <p className="text-sm text-gray-900">Escaneie este QR Code para salvar este cartão</p>
@@ -349,12 +361,33 @@ export default function CartaoVirtual() {
                     className="w-full bg-[#17d300] hover:bg-[#15bb00] flex items-center justify-center gap-2 h-12 text-white"
                     onClick={() => {
                       window.navigator.vibrate(200);
-                      toast({
-                        title: "Recurso Premium",
-                        description: "Faça upgrade para ativar a funcionalidade NFC",
-                        variant: "default",
-                        className: "bg-violet-50 border border-violet-200 text-violet-800",
-                      });
+                      if (profile?.premium) {
+                        // Lógica para ativar NFC para usuários premium
+                        if ('NDEFReader' in window) {
+                          toast({
+                            title: "NFC Ativado",
+                            description: "Aproxime seu dispositivo de outro para compartilhar o cartão",
+                            variant: "default",
+                            className: "bg-green-50 border border-green-200 text-green-800",
+                          });
+                          // Aqui colocaria a lógica de ativação do NFC
+                        } else {
+                          toast({
+                            title: "NFC não suportado",
+                            description: "Seu dispositivo não suporta NFC",
+                            variant: "default",
+                            className: "bg-orange-50 border border-orange-200 text-orange-800",
+                          });
+                        }
+                      } else {
+                        // Mensagem para usuários não premium
+                        toast({
+                          title: "Recurso Premium",
+                          description: "Faça upgrade para ativar a funcionalidade NFC",
+                          variant: "default",
+                          className: "bg-violet-50 border border-violet-200 text-violet-800",
+                        });
+                      }
                     }}
                   >
                     <div className="flex items-center gap-2">

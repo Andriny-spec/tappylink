@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { PaymentModal } from "@/components/ui/payment-modal";
+import { CheckoutModal } from "@/components/ui/checkout-modal";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { FeaturesCarousel } from "@/components/ui/features-carousel";
@@ -24,20 +25,27 @@ import Sparkles from "@/components/icons/sparkles";
 export default function Home() {
   const faqRef = useRef<HTMLDivElement>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [shouldRenderPoints, setShouldRenderPoints] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{
+    id: string;
     title: string;
     price: string;
+    originalPrice?: number;
     installments: string;
+    checkoutUrl?: string;
   } | null>(null);
 
   const handleBuyClick = (plan: {
+    id: string;
     title: string;
     price: string;
+    originalPrice?: number;
     installments: string;
+    checkoutUrl?: string;
   }) => {
     setSelectedPlan(plan);
-    setIsPaymentModalOpen(true);
+    setIsCheckoutModalOpen(true);
   };
 
   const steps = [
@@ -59,11 +67,14 @@ export default function Home() {
     id: string;
     title: string;
     price: string;
+    originalPrice?: number;
     installments: string;
     features: string[];
     popular?: boolean;
-    checkoutLink?: string;
+    checkoutUrl?: string;
   }>>([]);
+  const [plansError, setPlansError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('Serviço de planos temporariamente indisponível.');
   
   // Função para formatar o preço
   const formatPrice = (price: number) => {
@@ -83,31 +94,42 @@ export default function Home() {
   };
   
   // Buscar planos do banco de dados
-  // Renderiza os pontos apenas no lado do cliente para evitar erro de hidratação
   useEffect(() => {
     setShouldRenderPoints(true);
   }, []);
 
   useEffect(() => {
+    // Função para calcular o valor da parcela
+    const calculateInstallment = (price: number) => {
+      // Divisor fixo em 6x
+      const installmentCount = 6;
+      const installmentValue = price / installmentCount;
+      
+      return `${installmentCount}x de ${new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(installmentValue)}`;
+    };
+    
+    // Função para buscar planos da API
     const fetchPlans = async () => {
       try {
-        // Importar configuração dinamicamente para evitar problemas de SSR
-        const { TAPPY_API_URL, PLATFORM_SLUG } = await import('@/config');
+        // URL da API do TappyLink que busca planos do Tappy.id
+        const apiUrl = '/api/planos/tappy';
+        console.log('Buscando planos do Tappy.id para a plataforma TappyLink:', apiUrl);
         
-        // Construir a URL e verificar que não tenha espaços
-        const apiUrl = `${TAPPY_API_URL}/api/planos/plataforma/${PLATFORM_SLUG}`.trim();
-        console.log('Buscando planos na URL:', apiUrl);
-        
-        // Para desenvolvimento local, podemos usar uma URL alternativa se necessário
-        // Remover este bloco quando estiver tudo funcionando
-        const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-        const urlToUse = isDevelopment ? 'http://localhost:3001/api/planos/plataforma/tappyid' : apiUrl;
-        console.log('URL final utilizada:', urlToUse);
-        
-        // Buscar planos da API central do Tappy para a plataforma TappyID
-        const response = await fetch(urlToUse);
+        // Buscar planos da API do Tappy.id específicos para a plataforma TappyLink
+        const response = await fetch(apiUrl);
         
         if (!response.ok) {
+          // Se o serviço está indisponível (status 503)
+          if (response.status === 503) {
+            console.log('Serviço de planos temporariamente indisponível');
+            setPlansError(true);
+            setErrorMessage('Os planos estão temporariamente indisponíveis. Por favor, tente novamente mais tarde.');
+            return;
+          }
+          
           throw new Error(`Erro ao buscar planos: ${response.status}`);
         }
         
@@ -115,6 +137,14 @@ export default function Home() {
         
         if (!data.planos || !Array.isArray(data.planos)) {
           console.error('Formato de resposta inválido:', data);
+          setPlansError(true);
+          setErrorMessage('Formato de resposta inválido');
+          return;
+        }
+        
+        if (data.planos.length === 0) {
+          setPlansError(true);
+          setErrorMessage('Nenhum plano disponível no momento.');
           return;
         }
         
@@ -123,58 +153,20 @@ export default function Home() {
           id: plan.id,
           title: plan.name,
           price: plan.price ? formatPrice(Number(plan.price)) : "Sob consulta",
+          originalPrice: plan.price,
           installments: plan.price ? calculateInstallment(Number(plan.price)) : "Valores personalizados",
           features: plan.features || [],
           popular: plan.isHighlighted || plan.isFeatured || index === 1, // Usa o campo isHighlighted ou define o segundo plano como popular
-          checkoutLink: plan.checkoutLink
+          checkoutUrl: plan.checkoutUrl // URL de checkout da Krivano
         }));
         
-        console.log('Planos carregados da API central:', formattedPlans);
+        console.log('Planos carregados do Tappy.id:', formattedPlans);
         setPlans(formattedPlans);
+        setPlansError(false);
       } catch (error) {
-        console.error("Erro ao buscar planos da API central:", error);
-        // Carregar planos de fallback em caso de erro
-        setPlans([
-          {
-            id: 'basic',
-            title: 'Plano Básico',
-            price: 'R$ 29,90',
-            installments: '6x de R$ 4,98',
-            features: [
-              'Cartão Digital',
-              'QR Code',
-              'Compartilhamento ilimitado',
-              'Personalização básica'
-            ]
-          },
-          {
-            id: 'pro',
-            title: 'Plano Profissional',
-            price: 'R$ 49,90',
-            installments: '6x de R$ 8,32',
-            features: [
-              'Todos os recursos do Plano Básico',
-              'Cartão NFC',
-              'Análise de visualizações',
-              'Integração com redes sociais',
-              'Personalização avançada'
-            ],
-            popular: true
-          },
-          {
-            id: 'business',
-            title: 'Plano Empresarial',
-            price: 'Sob consulta',
-            installments: 'Valores personalizados',
-            features: [
-              'Todos os recursos do Plano Profissional',
-              'Cartões para toda equipe',
-              'Gerenciamento centralizado',
-              'Personalização com marca da empresa',
-              'Suporte prioritário'
-            ]
-          }
-        ]);
+        console.error("Erro ao buscar planos do Tappy.id:", error);
+        setPlansError(true);
+        setErrorMessage('Serviço de planos temporariamente indisponível. Tente novamente mais tarde.');
       }
     };
     
@@ -462,99 +454,123 @@ export default function Home() {
                 </motion.p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10 pt-6">
-                {plans.map((plan, index) => (
-                  <div key={index} className="relative">
-                    {/* Badge Popular */}
-                    {plan.popular && (
-                      <div className="absolute -top-6 inset-x-0 flex justify-center z-50">
-                        <motion.div 
-                          className="bg-[#17d300] text-white px-6 py-1.5 rounded-full text-sm font-medium shadow-xl shadow-[#17d300]/20 border border-[#ffffff]/20 font-poppins"
-                          initial={{ scale: 0.9 }}
-                          animate={{ scale: [0.9, 1.1, 1] }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          MAIS POPULAR
-                        </motion.div>
-                      </div>
-                    )}
-                    
-                    {/* Card principal */}
+                {plansError ? (
+                  <div className="col-span-1 md:col-span-3 text-center py-12">
                     <motion.div
-                      className={`backdrop-blur-md bg-[#0a192f]/40 p-0 rounded-3xl overflow-hidden flex flex-col h-full ${plan.popular || plan.title === "Plano Empresarial" ? "ring-2 ring-[#17d300]" : "ring-1 ring-[#233554]/50"}`}
-                      initial={{ opacity: 0, y: 30 }}
+                      initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 * index, duration: 0.8 }}
-                      whileHover={{ 
-                        y: -10,
-                        boxShadow: plan.popular
-                          ? "0 20px 40px -10px rgba(23, 211, 0, 0.3)"
-                          : "0 20px 40px -15px rgba(10, 25, 47, 0.5)" 
-                      }}
+                      transition={{ duration: 0.5 }}
+                      className="bg-[#0a192f]/80 p-8 rounded-2xl border border-[#233554] max-w-2xl mx-auto"
                     >
-                      {/* Header do card com gradiente */}
-                      <div className={`p-1 ${plan.popular ? "bg-gradient-to-r from-[#17d300] to-[#17d300]/80" : "bg-gradient-to-r from-[#233554] to-[#0a192f]"}`}>
-                        <div className={`p-4 ${plan.popular ? "bg-[#17d300]/10" : "bg-[#0a192f]/80"} rounded-t-2xl`}>
-                          <h3 className="text-2xl font-bold text-white text-center font-poppins pt-1">{plan.title}</h3>
-                        </div>
-                      </div>
-                      
-                      {/* Conteúdo do card */}
-                      <div className="p-8 flex flex-col flex-grow">
-                        {/* Preço com design destacado */}
-                        <div className="flex flex-col items-center mb-8">
-                          <p className="text-5xl font-bold text-white mb-1 font-poppins">
-                            <span className={`${plan.popular ? "text-[#17d300]" : "text-white"}`}>{plan.price}</span>
-                          </p>
-                          <p className="text-gray-400 font-poppins">ou {plan.installments}</p>
-                        </div>
-                        
-                        {/* Linha divisória com gradiente */}
-                        <div className={`h-px w-full my-4 ${plan.popular ? "bg-gradient-to-r from-transparent via-[#17d300]/30 to-transparent" : "bg-gradient-to-r from-transparent via-[#233554]/50 to-transparent"}`}></div>
-                        
-                        {/* Lista de features */}
-                        <ul className="space-y-5 mb-8 flex-grow">
-                          {plan.features.map((feature, featureIndex) => (
-                            <motion.li 
-                              key={featureIndex} 
-                              className="flex items-start gap-3"
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.1 * featureIndex + 0.5, duration: 0.5 }}
-                            >
-                              <div className={`flex-shrink-0 mt-1 w-5 h-5 flex items-center justify-center rounded-full ${plan.popular ? "bg-[#17d300]/20" : "bg-[#233554]/30"}`}>
-                                <Check className={`w-3.5 h-3.5 ${plan.popular ? "text-[#17d300]" : "text-white"}`} />
-                              </div>
-                              <span className="text-gray-300 font-poppins">{feature}</span>
-                            </motion.li>
-                          ))}
-                        </ul>
-                        
-                        {/* Botão com efeito de glassmorphism */}
-                        <motion.div
-                          className="mt-auto"
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Button
-                            className={`w-full py-6 font-bold shadow-xl ${plan.popular 
-                              ? "bg-[#17d300] hover:bg-[#15bb00] text-white shadow-[#17d300]/20" 
-                              : "bg-white/10 hover:bg-white/20 backdrop-blur-md text-white ring-1 ring-white/20"} 
-                              font-poppins rounded-xl text-sm transition-all duration-300`}
-                            onClick={() =>
-                              plan.title === "Plano Empresarial" || !plan.checkoutLink
-                                ? window.location.href = "mailto:contato@tappyid.com"
-                                : window.location.href = plan.checkoutLink
-                            }
-                          >
-                            {plan.title === "Plano Empresarial"
-                              ? "SOLICITAR ORÇAMENTO"
-                              : "COMPRAR AGORA"}
-                          </Button>
-                        </motion.div>
-                      </div>
+                      <h3 className="text-xl text-white font-semibold mb-4">Indisponível no momento</h3>
+                      <p className="text-gray-300 mb-6">{errorMessage}</p>
+                      <Button 
+                        variant="outline" 
+                        className="bg-[#233554] text-white hover:bg-[#17d300] border-gray-600"
+                        onClick={() => window.location.reload()}
+                      >
+                        Tentar novamente
+                      </Button>
                     </motion.div>
                   </div>
-                ))}
+                ) : plans.length > 0 ? (
+                  plans.map((plan, index) => (
+                    <div key={index} className="relative">
+                      {/* Badge Popular */}
+                      {plan.popular && (
+                        <div className="absolute -top-6 inset-x-0 flex justify-center z-50">
+                          <motion.div 
+                            className="bg-[#17d300] text-white px-6 py-1.5 rounded-full text-sm font-medium shadow-xl shadow-[#17d300]/20 border border-[#ffffff]/20 font-poppins"
+                            initial={{ scale: 0.9 }}
+                            animate={{ scale: [0.9, 1.1, 1] }}
+                            transition={{ duration: 0.5 }}
+                          >
+                            MAIS POPULAR
+                          </motion.div>
+                        </div>
+                      )}
+                      
+                      {/* Card principal */}
+                      <motion.div
+                        className={`backdrop-blur-md bg-[#0a192f]/40 p-0 rounded-3xl overflow-hidden flex flex-col h-full ${plan.popular || plan.title === "Plano Empresarial" ? "ring-2 ring-[#17d300]" : "ring-1 ring-[#233554]/50"}`}
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 * index, duration: 0.8 }}
+                        whileHover={{ 
+                          y: -10,
+                          boxShadow: plan.popular
+                            ? "0 20px 40px -10px rgba(23, 211, 0, 0.3)"
+                            : "0 20px 40px -15px rgba(10, 25, 47, 0.5)" 
+                        }}
+                      >
+                        {/* Header do card com gradiente */}
+                        <div className={`p-1 ${plan.popular ? "bg-gradient-to-r from-[#17d300] to-[#17d300]/80" : "bg-gradient-to-r from-[#233554] to-[#0a192f]"}` }>
+                          <div className={`p-4 ${plan.popular ? "bg-[#17d300]/10" : "bg-[#0a192f]/80"} rounded-t-2xl`}>
+                            <h3 className="text-2xl font-bold text-white text-center font-poppins pt-1">{plan.title}</h3>
+                          </div>
+                        </div>
+                        
+                        {/* Conteúdo do card */}
+                        <div className="p-8 flex flex-col flex-grow">
+                          {/* Preço com design destacado */}
+                          <div className="flex flex-col items-center mb-8">
+                            <p className="text-5xl font-bold text-white mb-1 font-poppins">
+                              <span className={`${plan.popular ? "text-[#17d300]" : "text-white"}`}>{plan.price}</span>
+                            </p>
+                            <p className="text-gray-400 font-poppins">ou {plan.installments}</p>
+                          </div>
+                          
+                          {/* Linha divisória com gradiente */}
+                          <div className={`h-px w-full my-4 ${plan.popular ? "bg-gradient-to-r from-transparent via-[#17d300]/30 to-transparent" : "bg-gradient-to-r from-transparent via-[#233554]/50 to-transparent"}`}></div>
+                          
+                          {/* Lista de features */}
+                          <ul className="space-y-5 mb-8 flex-grow">
+                            {plan.features.map((feature, featureIndex) => (
+                              <motion.li 
+                                key={featureIndex} 
+                                className="flex items-start gap-3"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.1 * featureIndex, duration: 0.5 }}
+                              >
+                                <Check className="text-[#17d300] w-6 h-6" />
+                                <span className="text-gray-300">{feature}</span>
+                              </motion.li>
+                            ))}
+                          </ul>
+                          
+                          {/* Botão de compra */}
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.5, duration: 0.5 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="relative"
+                          >
+                            <div className="absolute -inset-1 bg-[#17d300]/30 rounded-full blur-md animate-pulse"></div>
+                            <Button
+                              className="bg-[#17d300] text-white hover:bg-[#15bb00] font-poppins font-semibold py-6 px-10 rounded-full relative z-10 shadow-lg"
+                              size="lg"
+                              onClick={() => handleBuyClick(plan)}
+                            >
+                              {plan.title === "Plano Empresarial"
+                                ? "SOLICITAR ORÇAMENTO"
+                                : "COMPRAR AGORA"}
+                            </Button>
+                          </motion.div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-1 md:col-span-3 text-center py-12">
+                    <div className="flex justify-center">
+                      <div className="h-16 w-16 rounded-full border-4 border-t-[#17d300] border-r-[#17d300] border-b-transparent border-l-transparent animate-spin"></div>
+                    </div>
+                    <p className="text-gray-300 mt-4">Carregando planos...</p>
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -722,12 +738,18 @@ export default function Home() {
 
       <PaymentModal
         isOpen={isPaymentModalOpen}
-        onClose={() => {
-          setIsPaymentModalOpen(false);
-          setSelectedPlan(null);
-        }}
+        onClose={() => setIsPaymentModalOpen(false)}
         plan={selectedPlan}
       />
+      
+      {/* Modal de Checkout Tappy.id */}
+      {selectedPlan && (
+        <CheckoutModal
+          isOpen={isCheckoutModalOpen}
+          onClose={() => setIsCheckoutModalOpen(false)}
+          plan={selectedPlan}
+        />
+      )}
     </>
   );
 }

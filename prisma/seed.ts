@@ -71,6 +71,9 @@ async function main() {
   
   for (const assinante of nomesAssinantes) {
     const senhaHash = await argon2.hash('senha123');
+    // Define os primeiros 3 assinantes como premium
+    const isPremium = nomesAssinantes.indexOf(assinante) < 3;
+    
     const novoAssinante = await prisma.user.create({
       data: {
         email: assinante.email,
@@ -84,6 +87,7 @@ async function main() {
             linkedin: `https://linkedin.com/in/${assinante.nome.toLowerCase().replace(' ', '')}`,
             instagram: `@${assinante.nome.toLowerCase().replace(' ', '')}`,
             whatsapp: `55${randomNumber(11, 99)}9${randomNumber(10000000, 99999999)}`,
+            premium: isPremium, // Define se o usuário é premium
           }
         }
       },

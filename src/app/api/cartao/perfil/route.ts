@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { cache } from "react";
 
 const prisma = new PrismaClient();
+
+// Cache para status premium de usuários (temporário até implementação em banco)
+const premiumUsers = new Set(['joao.silva@email.com', 'maria.santos@email.com', 'pedro.oliveira@email.com']);
 
 // GET: Buscar dados do perfil para o cartão virtual (acesso público)
 export async function GET(request: NextRequest) {
@@ -48,11 +52,14 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Buscar o usuário para obter o email
+    // Buscar o usuário para obter o email e verificar status premium
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { email: true }
     });
+    
+    // Verificar se o usuário é premium (usando o cache temporário)
+    const isPremium = user?.email ? premiumUsers.has(user.email) : false;
 
     // Perfil encontrado, preparar dados formatados para o cartão
     const cartaoData = {
@@ -70,7 +77,8 @@ export async function GET(request: NextRequest) {
       linkedin: profile.linkedin || "",
       whatsapp: profile.whatsapp || "",
       telegram: profile.telegram || "",
-      tiktok: profile.tiktok || ""
+      tiktok: profile.tiktok || "",
+      premium: isPremium
     };
     
     // Incrementar contador de visualizações (opcional)
