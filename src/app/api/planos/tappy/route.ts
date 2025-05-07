@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Usar o endpoint de API do dashboard para obter os planos
-    const tappyApiUrl = "https://tappy.id/api/planos";
+    // URL da API pública do Tappy para buscar planos
+    const tappyApiUrl = "https://www.tappy.id/api/planos/publicos";
     
     // Fazer a requisição
     const response = await fetch(tappyApiUrl, {
