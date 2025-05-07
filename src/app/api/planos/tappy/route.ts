@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
       checkoutUrl: plan.checkoutLink || `/checkout/${plan.id}`
     }));
 
-    return NextResponse.json(plans);
+    // O frontend espera um objeto com uma propriedade planos ou plans
+    return NextResponse.json({ planos: plans });
 
   } catch (error) {
     console.error("Erro ao buscar planos do Tappy.id:", error);
