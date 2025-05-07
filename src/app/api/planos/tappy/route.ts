@@ -1,51 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 /**
- * Endpoint para buscar planos do banco de dados do TappyLink
- * Uma solução REAL que funcionará sempre e se adaptará a mudanças nos planos
+ * Endpoint para buscar planos do Tappy.id específicos para a plataforma TappyLink
  */
 export async function GET(request: NextRequest) {
   try {
-    // Buscar planos do banco de dados do TappyLink
-    const dbPlans = await prisma.plan.findMany({
-      where: {
-        isActive: true
+    // URL do endpoint público que realmente funciona
+    const tappyApiUrl = "https://www.tappy.id/api/planos/publicos";
+    
+    // Fazer a requisição
+    const response = await fetch(tappyApiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
       },
-      orderBy: {
-        price: 'asc'
-      }
+      next: { revalidate: 3600 } // Revalidar a cada hora
     });
-
-    // Se não houver planos no banco, isso significa que o seed não foi executado
-    if (dbPlans.length === 0) {
-      return NextResponse.json(
-        { 
-          error: true, 
-          message: "Nenhum plano disponível no momento. Entre em contato com o suporte."
-        },
-        { status: 404 }
-      );
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar planos: ${response.status}`);
     }
-
+    
+    // Processar a resposta
+    const data = await response.json();
+    
+    // Encontrar o produto TappyLink
+    const tappyLinkProduct = data.find((product: any) => 
+      product.id === 'tappy-tappylink'
+    );
+    
+    if (!tappyLinkProduct?.plans?.length) {
+      throw new Error('Nenhum plano encontrado para a plataforma TappyLink');
+    }
+    
     // Mapear os planos para o formato esperado pelo frontend
-    const plans = dbPlans.map(plan => ({
+    const plans = tappyLinkProduct.plans.map((plan: any) => ({
       id: plan.id,
-      title: plan.name,
-      price: `R$ ${Number(plan.price).toFixed(2).replace('.', ',')}`,
-      installments: `6x de R$ ${(Number(plan.price) / 6).toFixed(2).replace('.', ',')}`,
-      popular: plan.name.toLowerCase().includes('prata') || plan.name.toLowerCase().includes('profissional'),
-      features: plan.features || [],
-      originalPrice: Number(plan.price),
-      checkoutUrl: `/checkout/${plan.id}`
+      title: plan.title,
+      price: `R$ ${plan.price.monthly.toFixed(2).replace('.', ',')}`,
+      installments: `6x de R$ ${(plan.price.monthly / 6).toFixed(2).replace('.', ',')}`,
+      popular: true, // Marcar como popular pois é o único plano
+      features: plan.features.filter((f: any) => f.included).map((f: any) => f.title),
+      originalPrice: plan.price.monthly,
+      checkoutUrl: plan.checkoutLink || `/checkout/${plan.id}`
     }));
 
     return NextResponse.json(plans);
 
   } catch (error) {
-    console.error("Erro ao buscar planos:", error);
+    console.error("Erro ao buscar planos do Tappy.id:", error);
     
     // Retorna um erro 503
     return NextResponse.json(
