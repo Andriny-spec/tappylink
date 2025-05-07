@@ -39,7 +39,26 @@ export function CheckoutModal({ isOpen, onClose, plan }: CheckoutModalProps) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Aplica máscara de telefone se for o campo phone
+    if (name === 'phone') {
+      // Remove todos os caracteres não numéricos
+      const numericValue = value.replace(/\D/g, '');
+      
+      // Formata como (XX) XXXXX-XXXX
+      let formattedValue = '';
+      if (numericValue.length <= 2) {
+        formattedValue = numericValue;
+      } else if (numericValue.length <= 7) {
+        formattedValue = `(${numericValue.slice(0, 2)}) ${numericValue.slice(2)}`;
+      } else {
+        formattedValue = `(${numericValue.slice(0, 2)}) ${numericValue.slice(2, 7)}-${numericValue.slice(7, 11)}`;
+      }
+      
+      setFormData(prev => ({ ...prev, [name]: formattedValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -158,13 +177,34 @@ export function CheckoutModal({ isOpen, onClose, plan }: CheckoutModalProps) {
             </div>
           </div>
 
-          <DialogFooter>
+          <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md text-sm">
+            <p className="text-blue-700 dark:text-blue-400 font-medium">Nota:</p>
+            <p className="text-blue-600 dark:text-blue-300">
+              Se você não estiver logado, criaremos uma conta automaticamente com os dados informados.
+              Você poderá fazer login usando seu email como senha inicial.
+            </p>
+          </div>
+
+          <DialogFooter className="mt-4">
             <Button 
-              type="submit" 
-              className="w-full bg-[#17d300] hover:bg-[#15bb00]"
+              variant="outline"
+              onClick={onClose}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Processando..." : "Prosseguir para Pagamento"}
+              Cancelar
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="ml-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="mr-2">Processando...</span>
+                </>
+              ) : (
+                'Prosseguir para pagamento'
+              )}
             </Button>
           </DialogFooter>
         </form>

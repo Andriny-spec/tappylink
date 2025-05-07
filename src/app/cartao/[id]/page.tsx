@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -42,7 +42,8 @@ interface ProfileData {
 
 export default function CartaoVirtual() {
   const { toast } = useToast();
-  const params = useParams() || {}; // Garantir que params nunca é nulo
+  const params = useParams() || {};
+  const router = useRouter();
   const userId = params.id as string;
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -339,10 +340,22 @@ export default function CartaoVirtual() {
                           <img 
                             src={qrCodeUrl} 
                             alt="QR Code do Cartão Virtual" 
-                            className="w-40 h-40 blur-md opacity-50"
+                            className="w-40 h-40 blur-md opacity-50 cursor-pointer"
+                            onClick={() => {
+                              window.navigator.vibrate(100);
+                              // Redirecionar para a seção de planos na home
+                              router.push('/#planos');
+                            }}
                           />
                           {/* Overlay de upgrade */}
-                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <div 
+                            className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer"
+                            onClick={() => {
+                              window.navigator.vibrate(100);
+                              // Redirecionar para a seção de planos na home
+                              router.push('/#planos');
+                            }}
+                          >
                             <div className="bg-white/80 px-3 py-1 rounded-full text-xs font-bold text-[#17d300] mb-2">
                               PREMIUM
                             </div>
@@ -387,6 +400,11 @@ export default function CartaoVirtual() {
                           variant: "default",
                           className: "bg-violet-50 border border-violet-200 text-violet-800",
                         });
+                        
+                        // Redirecionar para a página pública de planos após 1 segundo
+                        setTimeout(() => {
+                          router.push('/#planos');
+                        }, 1000);
                       }
                     }}
                   >

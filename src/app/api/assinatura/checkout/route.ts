@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
         userId = existingUser.id;
       } else {
         // Criar novo usuário
-        const password = await argon2.hash(Math.random().toString(36).slice(-10));
+        // Usar o próprio email como senha inicial para facilitar o primeiro acesso
+        const password = await argon2.hash(email);
         
         const newUser = await prisma.user.create({
           data: {

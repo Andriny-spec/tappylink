@@ -34,16 +34,19 @@ export async function GET(request: NextRequest) {
     }
     
     // Mapear os planos para o formato esperado pelo frontend
-    const plans = tappyLinkProduct.plans.map((plan: any) => ({
-      id: plan.id,
-      title: plan.title,
-      price: `R$ ${plan.price.monthly.toFixed(2).replace('.', ',')}`,
-      installments: `6x de R$ ${(plan.price.monthly / 6).toFixed(2).replace('.', ',')}`,
-      popular: true, // Marcar como popular pois é o único plano
-      features: plan.features.filter((f: any) => f.included).map((f: any) => f.title),
-      originalPrice: plan.price.monthly,
-      checkoutUrl: plan.checkoutLink || `/checkout/${plan.id}`
-    }));
+    const plans = tappyLinkProduct.plans.map((plan: any) => {
+      // Garantir que temos um número para o preço
+      const priceValue = Number(plan.price.monthly);
+      
+      return {
+        id: plan.id,
+        name: plan.title, // Frontend espera 'name' e não 'title'
+        price: priceValue, // Apenas o valor numérico, não formatado
+        features: plan.features.filter((f: any) => f.included).map((f: any) => f.title),
+        isHighlighted: true, // Marcar como plano destacado
+        checkoutUrl: plan.checkoutLink || `/checkout/${plan.id}`
+      };
+    });
 
     // O frontend espera um objeto com uma propriedade planos ou plans
     return NextResponse.json({ planos: plans });
