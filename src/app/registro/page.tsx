@@ -96,25 +96,14 @@ export default function RegistroPage() {
       
       toast.success('Cadastro realizado com sucesso! Fazendo login...');
       
-      // Fazer login automaticamente após o cadastro
-      const loginResult = await signIn('credentials', {
-        email: values.email,
-        password: values.password,
-        redirect: false,
-      });
+      toast.success('Cadastro realizado com sucesso! Redirecionando para o login...');
       
-      if (loginResult?.error) {
-        console.error('Erro ao fazer login após cadastro:', loginResult.error);
-        toast.error('Cadastro realizado, mas houve um erro ao fazer login automático. Por favor, faça login manualmente.');
-        setTimeout(() => router.push('/login'), 3000);
-        return;
-      }
-      
-      // Login bem-sucedido, redirecionar para a página de perfil
-      toast.success('Login realizado com sucesso! Redirecionando...');
+      // Redirecionar para a página de login após o cadastro bem-sucedido
+      // É preferível fazer o redirecionamento completo em vez de login automático
+      // para garantir que a sessão seja iniciada corretamente
       setTimeout(() => {
-        router.push('/assinante/meu-perfil');
-      }, 1500);
+        router.push('/login?email=' + encodeURIComponent(values.email) + '&registered=true');
+      }, 2000);
       
     } catch (error) {
       console.error('Erro ao cadastrar:', error);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { Toaster } from '@/components/ui/sonner';
+import { DebugAuth } from '@/app/debug-auth';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -66,41 +67,17 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      console.log('Iniciando login com NextAuth v4');
-      
-      // Fazer login sem redirecionamento automático
-      const result = await signIn('credentials', {
+      // Tentar fazer login com redirecionamento automático
+      // Isso deixa o NextAuth gerenciar todo o fluxo de redirecionamento, que é mais confiável
+      await signIn('credentials', {
         email: values.email,
         password: values.password,
-        redirect: false
+        redirect: true,
+        callbackUrl: '/assinante/meu-perfil'
       });
       
-      if (result?.error) {
-        console.error('Erro na autenticação:', result.error);
-        toast.error('Credenciais inválidas. Tente novamente.');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Login bem-sucedido
-      toast.success('Login realizado com sucesso! Redirecionando...');
-      
-      // Buscar a sessão atual para verificar o papel do usuário
-      const session = await fetch('/api/auth/session');
-      const sessionData = await session.json();
-      
-      // Determinar redirecionamento baseado no papel (role) do usuário
-      let redirectTo = '/assinante/meu-perfil'; // Padrão para assinantes
-      
-      // Se for admin, redireciona para o dashboard
-      if (sessionData?.user?.role === 'ADMIN') {
-        redirectTo = '/dashboard';
-      }
-      
-      // Redirecionar após mensagem de sucesso
-      setTimeout(() => {
-        window.location.href = redirectTo;
-      }, 1500);
+      // Se chegar aqui, algo deu errado, pois o signIn com redirect:true deveria ter redirecionado
+      setIsLoading(false);
       
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -292,6 +269,8 @@ export default function LoginPage() {
           </div>
         </motion.div>
       </div>
+      <Toaster position="bottom-right" />
+      <DebugAuth />
     </>
   );
 }

@@ -1,13 +1,12 @@
-// Arquivo de compatibilidade para NextAuth v4 no formato Pages Router
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 
-// Apenas uma instância do PrismaClient deve existir
+// Instância do PrismaClient
 const prisma = new PrismaClient();
 
-// Configuração principal do NextAuth
+// Configuração simplificada do NextAuth
 const authOptions = {
   providers: [
     CredentialsProvider({
@@ -18,60 +17,46 @@ const authOptions = {
         password: { label: 'Senha', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials) {
-          console.log('Nenhuma credencial fornecida');
-          return null;
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Email e senha são obrigatórios');
         }
-        const { email, password } = credentials;
-        console.log('Tentativa de login para:', email);
-        
+
         try {
-          // Busca usuário no banco
-          console.log('Buscando usuário no banco:', email);
+          // Buscar usuário pelo email
           const user = await prisma.user.findUnique({
-            where: { email },
+            where: { email: credentials.email },
             include: { profile: true }
           });
-          
+
+          // Verificar se o usuário existe
           if (!user) {
-            console.log('Usuário não encontrado:', email);
-            return null;
+            throw new Error('Email ou senha incorretos');
           }
-          
-          console.log('Usuário encontrado, verificando senha');
-          console.log('Hash armazenado:', user.password.substring(0, 20) + '...');
-          
-          // Verifica senha
-          try {
-            const passwordValid = await argon2.verify(
-              user.password,
-              password
-            );
-            
-            console.log('Senha válida?', passwordValid);
-            
-            if (!passwordValid) {
-              console.log('Senha inválida para:', email);
-              return null;
-            }
-            
-            console.log('Login bem-sucedido para:', email);
-            
-            // Retorna dados do usuário para sessão
-            return {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              profileId: user.profile?.id || null
-            };
-          } catch (verifyError) {
-            console.error('Erro ao verificar senha:', verifyError);
-            return null;
+
+          // Verificar senha
+          const isPasswordValid = await argon2.verify(
+            user.password, 
+            credentials.password
+          );
+
+          if (!isPasswordValid) {
+            throw new Error('Email ou senha incorretos');
           }
+
+          // Retornar usuário para criar a sessão
+          return {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            name: user.profile?.name || user.email.split('@')[0],
+            profileId: user.profile?.id
+          };
         } catch (error) {
-          console.error('Erro ao buscar usuário:', error);
-          return null;
+          console.error('Erro na autenticação:', error);
+          throw new Error(error.message || 'Falha na autenticação');
+        } finally {
+          // Desconectar do banco após operação
+          await prisma.$disconnect();
         }
       }
     })
@@ -89,27 +74,32 @@ const authOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
-        session.user.name = token.name;
+        session.user.profileId = token.profileId;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Garantir redirecionamento para URLs internas
+      if (url.startsWith('/')) {
+        // Se o URL começar com '/', é uma URL relativa
+        return `${baseUrl}${url}`;
+      } else if (url.startsWith(baseUrl)) {
+        // Se o URL já tiver o baseUrl, retorne-o diretamente
+        return url;
+      }
+      // Redirecionar para a página padrão
+      return '/assinante/meu-perfil';
     }
   },
   pages: {
-    signIn: '/login'
+    signIn: '/login',
+    signOut: '/login',
+    error: '/login' // Página de erro redirecionará para login
   },
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "tappyid-super-secure-secret-key",
   debug: process.env.NODE_ENV === 'development'
 };
 
-// Função para retornar as opções de autenticação para uso nas API Routes
-export async function getAuthOptions() {
-  return authOptions;
-}
-
-// Exporta o handler principal do NextAuth usando authOptions diretamente
+// Exporta o handler principal do NextAuth
 export default NextAuth(authOptions);
-
-// Exporta o handler para a API Routes do App Router
-export const GET = NextAuth(authOptions);
-export const POST = NextAuth(authOptions);
